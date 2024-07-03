@@ -1,0 +1,16 @@
+{% extends 'index.html' %}
+{% block content %}
+<h2>Auditoriums</h2>
+<div class="auditorium-list">
+    {% for auditorium in auditoriums %}
+    <div class="auditorium">
+        <img src="{{ auditorium.image.url }}" alt="{{ auditorium.name }}">
+        <h3>{{ auditorium.name }}</h3>
+        <p>{{ auditorium.description }}</p>
+        <p>{{ auditorium.is_ac|yesno:"AC,Non-AC" }}</p>
+        <p>Price: {{ auditorium.price }}</p>
+        <a href="{% url 'book_auditorium' auditorium.id %}">Book Now</a>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

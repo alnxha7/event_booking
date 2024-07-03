@@ -1,0 +1,10 @@
+{% extends 'index.html' %}
+{% block content %}
+<h2>Book {{ auditorium.name }}</h2>
+<form method="post">
+    {% csrf_token %}
+    <label for="date">Date:</label>
+    <input type="date" id="date" name="date"><br>
+    <button type="submit">Book</button>
+</form>
+{% endblock %}

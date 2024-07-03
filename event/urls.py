@@ -19,12 +19,13 @@ from django.urls import path
 from auditorium import views
 
 urlpatterns = [
-   path('admin/', admin.site.urls),
-    path('',views.home,name='home'),
-    path('login/',views.login_view,name='login'),
-    path('register/',views.register,name='register'),
-    path('user_index/',views.user_index,name='user_index'),
-    path('event_host_index/',views.event_host_index,name='event_host_index'),
-    path('event_schedules/',views.event_schedules,name='event_schedules'),
-    path('user_bookings/',views.user_bookings,name='user_bookings'),
+    path('', views.home, name='home'),
+    path('admin/', admin.site.urls),
+    path('login/', views.login_view, name='login'),
+    path('register_user/', views.register_user, name='register_user'),
+    path('register_auditorium/', views.register_auditorium, name='register_auditorium'),
+    path('user/', views.user_index, name='user_index'),
+    path('host/', views.event_host_index, name='event_host_index'),
+    path('user/bookings/', views.user_bookings, name='user_bookings'),
+    path('host/schedules/', views.event_schedules, name='event_schedules'),
 ]

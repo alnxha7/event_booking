@@ -1,25 +1,23 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
-from .models import User
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from .models import User, Auditorium
 
-class CustomUserAdmin(UserAdmin):
-    model = User
-    list_display = ('username', 'email', 'first_name', 'last_name', 'role', 'is_active', 'is_staff')
-    list_filter = ('role', 'is_active', 'is_staff')
+class UserAdmin(BaseUserAdmin):
     fieldsets = (
         (None, {'fields': ('username', 'email', 'password')}),
-        ('Personal Info', {'fields': ('first_name', 'last_name')}),
-        ('Permissions', {'fields': ('role', 'is_active', 'is_staff', 'is_superuser',
-                                    'groups', 'user_permissions')}),
+        ('Permissions', {'fields': ('is_staff', 'is_active', 'is_superuser', 'groups', 'user_permissions')}),
+        ('Personal info', {'fields': ('role',)}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('username', 'email', 'password1', 'password2', 'role', 'is_staff', 'is_superuser'),
+            'fields': ('username', 'email', 'password1', 'password2'),
         }),
     )
-    search_fields = ('username', 'email', 'first_name', 'last_name')
-    ordering = ('username',)
+    list_display = ('username', 'email', 'role', 'is_staff', 'is_active', 'is_superuser')
+    search_fields = ('email', 'username')
+    ordering = ('email',)
 
-admin.site.register(User, CustomUserAdmin)
+admin.site.register(User, UserAdmin)
+admin.site.register(Auditorium)

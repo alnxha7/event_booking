@@ -1,0 +1,18 @@
+{% extends 'index.html' %}
+{% block content %}
+<h2>Create Auditorium</h2>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <label for="name">Name:</label>
+    <input type="text" id="name" name="name"><br>
+    <label for="description">Description:</label>
+    <textarea id="description" name="description"></textarea><br>
+    <label for="is_ac">AC:</label>
+    <input type="checkbox" id="is_ac" name="is_ac"><br>
+    <label for="price">Price:</label>
+    <input type="text" id="price" name="price"><br>
+    <label for="image">Image:</label>
+    <input type="file" id="image" name="image"><br>
+    <button type="submit">Create</button>
+</form>
+{% endblock %}
