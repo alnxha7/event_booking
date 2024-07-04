@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth import login as auth_login, authenticate, logout as auth_logout
+from django.contrib.auth.decorators import login_required
 from .models import User, Auditorium
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth import get_user_model
@@ -57,11 +58,13 @@ def register_auditorium(request):
         features = request.POST.get('features')
         price = request.POST.get('price')
         ac = request.POST.get('ac')
+        images = request.FILES.get('images')
+
 
         if password1 == password2:
             if not User.objects.filter(email=email).exists():
                 user = User.objects.create_user(username=username, email=email, password=password1)
-                Auditorium.objects.create(user=user, location=location, capacity=capacity, features=features, price=price, ac=ac)
+                Auditorium.objects.create(user=user, location=location, capacity=capacity, features=features, price=price, ac=ac, images=images)
                 return redirect('login')
             else:
                 messages.error(request, 'Email already exists.')
@@ -70,14 +73,19 @@ def register_auditorium(request):
     
     return render(request, 'register_auditorium.html')
 
+@login_required
+def event_host_index(request):
+    return render(request, 'event_host_index.html')
+
 def user_index(request):
     return render(request, 'user_index.html')
 
-def event_host_index(request):
-    return render(request, 'event_host_index.html')
+def event_schedules(request):
+    return render(request, 'event_schedules.html')
 
 def user_bookings(request):
     return render(request, 'user_bookings.html')
 
-def event_schedules(request):
-    return render(request, 'event_schedules.html')
+
+
+

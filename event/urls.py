@@ -26,6 +26,6 @@ urlpatterns = [
     path('register_auditorium/', views.register_auditorium, name='register_auditorium'),
     path('user/', views.user_index, name='user_index'),
     path('host/', views.event_host_index, name='event_host_index'),
-    path('user/bookings/', views.user_bookings, name='user_bookings'),
-    path('host/schedules/', views.event_schedules, name='event_schedules'),
+    path('user_bookings/', views.user_bookings, name='user_bookings'),
+    path('host_schedules/', views.event_schedules, name='event_schedules'),
 ]
