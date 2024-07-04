@@ -14,24 +14,17 @@ def login_view(request):
     if request.method == 'POST':
         email = request.POST.get('email')
         password = request.POST.get('password')
-        
+
         print(f"POST data - Email: {email}, Password: {password}")  # Debugging line
-        
-        try:
-            user = User.objects.get(email=email)
-            print(f"User found: {user}")  # Debugging line
-            user = authenticate(request, username=user.username, password=password)
-            print(f"Authenticated User: {user}")  # Debugging line
-        except User.DoesNotExist:
-            user = None
-            print("User not found")  # Debugging line
-        
+
+        user = authenticate(request, email=email, password=password)
         if user is not None:
             auth_login(request, user)
-            if user.role == 'host':
-                return redirect('event_host_index')
-            else:
+            print(f"Authenticated User: {user}")  # Debugging line
+            if user.role == 'user':
                 return redirect('user_index')
+            else:
+                return redirect('event_host_index')
         else:
             messages.error(request, 'Invalid email or password.')
             print("Invalid email or password")  # Debugging line
@@ -45,7 +38,7 @@ def register_user(request):
         password = request.POST.get('password')
 
         try:
-            user = User.objects.create_user(email=email, username=username, password=password, role='user')
+            user = User.objects.create_user(email=email, username=username, password=password, role='host')
             messages.success(request, 'User registered successfully.')
             return redirect('login')  # Replace with your login URL name
         except Exception as e:
@@ -55,31 +48,26 @@ def register_user(request):
 
 def register_auditorium(request):
     if request.method == 'POST':
-        username = request.POST.get('username')  # Consider using this for auditorium name
+        username = request.POST.get('username')
         email = request.POST.get('email')
-        password = request.POST.get('password')
+        password1 = request.POST.get('password1')
+        password2 = request.POST.get('password2')
         location = request.POST.get('location')
         capacity = request.POST.get('capacity')
         features = request.POST.get('features')
         price = request.POST.get('price')
-        ac = request.POST.get('ac_status')  # Updated to match the field name in the HTML form
+        ac = request.POST.get('ac')
 
-        if username and email and password and location and capacity and features and price and ac:
-            if User.objects.filter(email=email).exists():
-                messages.error(request, 'Email is already registered.')
-            else:
-                hashed_password = make_password(password)
-                user = User(username=username, email=email, role='host', password=hashed_password)
-                user.save()
-
-                auditorium = Auditorium(user=user, location=location, capacity=capacity, features=features, price=price, ac=ac)
-                auditorium.save()
-
-                messages.success(request, 'Registration successful. Please log in.')
+        if password1 == password2:
+            if not User.objects.filter(email=email).exists():
+                user = User.objects.create_user(username=username, email=email, password=password1)
+                Auditorium.objects.create(user=user, location=location, capacity=capacity, features=features, price=price, ac=ac)
                 return redirect('login')
+            else:
+                messages.error(request, 'Email already exists.')
         else:
-            messages.error(request, 'All fields are required.')
-
+            messages.error(request, 'Passwords do not match.')
+    
     return render(request, 'register_auditorium.html')
 
 def user_index(request):

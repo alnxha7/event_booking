@@ -41,7 +41,7 @@
 			<div class="cross text-right">
 				<a class="toggleDrawer" href="#"><i class="fa fa-times-circle fa-2x"></i></a>
 			</div>
-			<h2>Welcome {{ request.user.get_username }}</h2>
+			<h2>Welcome {{ user.username }}</h2>
 			<ul class="nav nav-pills nav-stacked">
                 <li>
                     <a href="{% url 'user_index' %}"><i class="fa fa-user"></i> Home</a>
