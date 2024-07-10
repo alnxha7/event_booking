@@ -40,6 +40,7 @@ def register_user(request):
 
         try:
             user = User.objects.create_user(email=email, username=username, password=password, role='host')
+            user.save()
             messages.success(request, 'User registered successfully.')
             return redirect('login')  # Replace with your login URL name
         except Exception as e:
@@ -60,24 +61,46 @@ def register_auditorium(request):
         ac = request.POST.get('ac')
         images = request.FILES.get('images')
 
+        print("Form data:", username, email, password1, password2, location, capacity, features, price, ac, images)
 
         if password1 == password2:
             if not User.objects.filter(email=email).exists():
-                user = User.objects.create_user(username=username, email=email, password=password1)
-                Auditorium.objects.create(user=user, location=location, capacity=capacity, features=features, price=price, ac=ac, images=images)
-                return redirect('login')
+                try:
+                    # Create the user
+                    user = User.objects.create_user(username=username, email=email, password=password1)
+                    print("User created successfully:", user)  # Debugging
+
+                    # Create the auditorium
+                    Auditorium.objects.create(
+                        user=user,  # Assigning the User instance to the ForeignKey field
+                        location=location,
+                        capacity=capacity,
+                        features=features,
+                        price=price,
+                        ac=ac,
+                        images=images
+                    )
+                    print("Auditorium created successfully!")  # Debugging
+                    return redirect('login')  # Replace 'login' with the appropriate URL name
+                except Exception as e:
+                    print("Error creating auditorium:", e)  # Debugging
+                    messages.error(request, 'An error occurred while creating the auditorium.')
             else:
                 messages.error(request, 'Email already exists.')
         else:
             messages.error(request, 'Passwords do not match.')
-    
+
     return render(request, 'register_auditorium.html')
+
 
 @login_required
 def event_host_index(request):
     return render(request, 'event_host_index.html')
 
+@login_required
 def user_index(request):
+    auditoriums = Auditorium.objects.all()
+    print(auditoriums)
     return render(request, 'user_index.html')
 
 def event_schedules(request):
@@ -85,7 +108,4 @@ def event_schedules(request):
 
 def user_bookings(request):
     return render(request, 'user_bookings.html')
-
-
-
 

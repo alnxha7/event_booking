@@ -24,7 +24,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     role = models.CharField(max_length=50, blank=True, null=True)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
-    date_joined = models.DateTimeField(auto_now_add=True)
     groups = models.ManyToManyField(Group, related_name='custom_user_groups')
     user_permissions = models.ManyToManyField(Permission, related_name='custom_user_permissions')
 
@@ -43,13 +42,14 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.is_superuser or super().has_module_perms(app_label)
 
 class Auditorium(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    location = models.CharField(max_length=100)
-    capacity = models.IntegerField()
-    features = models.TextField()
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    ac = models.CharField(max_length=10, choices=[('AC', 'AC'), ('NON-AC', 'NON-AC')])
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    location = models.CharField(max_length=100, null=True)
+    capacity = models.IntegerField(null=True)
+    features = models.TextField(null=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True)
+    ac = models.CharField(max_length=10, choices=[('AC', 'AC'), ('NON-AC', 'NON-AC')], null=True)
     images = models.ImageField(upload_to='auditorium_images/', blank=True, null=True)
 
     def __str__(self):
-        return self.user.username
+        return self.user.email
+    

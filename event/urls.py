@@ -17,6 +17,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from auditorium import views
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('', views.home, name='home'),
@@ -28,4 +30,4 @@ urlpatterns = [
     path('host/', views.event_host_index, name='event_host_index'),
     path('user_bookings/', views.user_bookings, name='user_bookings'),
     path('host_schedules/', views.event_schedules, name='event_schedules'),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
