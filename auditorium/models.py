@@ -1,6 +1,5 @@
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin, Group, Permission
 from django.db import models
-from django.conf import settings
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin, Group, Permission
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, username, password=None, **extra_fields):
@@ -15,7 +14,6 @@ class CustomUserManager(BaseUserManager):
     def create_superuser(self, email, username, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
-
         return self.create_user(email, username, password, **extra_fields)
     
 class User(AbstractBaseUser, PermissionsMixin):
@@ -43,13 +41,22 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 class Auditorium(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    location = models.CharField(max_length=100, null=True)
-    capacity = models.IntegerField(null=True)
-    features = models.TextField(null=True)
-    price = models.DecimalField(max_digits=10, decimal_places=2, null=True)
-    ac = models.CharField(max_length=10, choices=[('AC', 'AC'), ('NON-AC', 'NON-AC')], null=True)
-    images = models.ImageField(upload_to='auditorium_images/', blank=True, null=True)
+    location = models.CharField(max_length=255, null=True, blank=True)
+    capacity = models.IntegerField(null=True, blank=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    images = models.ImageField(upload_to='auditorium_images/', null=True, blank=True)
+    approved = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.user.email
+        return f"{self.user.email}'s Auditorium"
+
+    
+# class Booking(models.Model):
+#     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+#     auditorium = models.ForeignKey(Auditorium, on_delete=models.CASCADE)
+#     booking_date = models.DateTimeField(auto_now_add=True)
+#     paid = models.BooleanField(default=False)
+
+#     def __str__(self):
+#         return f"{self.user.username} - {self.auditorium.user.username} - {'Paid' if self.paid else 'Not Paid'}"
     

@@ -1,12 +1,15 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from django.contrib.auth import login as auth_login, authenticate, logout as auth_logout
+from django.contrib.auth import login as auth_login, authenticate, get_user_model
 from django.contrib.auth.decorators import login_required
+from django.conf import settings
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 from .models import User, Auditorium
-from django.contrib.auth.hashers import make_password
-from django.contrib.auth import get_user_model
+import stripe
 
 User = get_user_model()
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 def home(request):
     return render(request, 'index.html')
@@ -16,19 +19,19 @@ def login_view(request):
         email = request.POST.get('email')
         password = request.POST.get('password')
 
-        print(f"POST data - Email: {email}, Password: {password}")  # Debugging line
+        print(f"Attempting to authenticate user: {email}")  # Debugging line
 
         user = authenticate(request, email=email, password=password)
         if user is not None:
+            print(f"Authentication successful for user: {email}")  # Debugging line
             auth_login(request, user)
-            print(f"Authenticated User: {user}")  # Debugging line
             if user.role == 'user':
                 return redirect('user_index')
             else:
                 return redirect('event_host_index')
         else:
+            print(f"Authentication failed for user: {email}")  # Debugging line
             messages.error(request, 'Invalid email or password.')
-            print("Invalid email or password")  # Debugging line
 
     return render(request, 'login.html')
 
@@ -42,7 +45,7 @@ def register_user(request):
             user = User.objects.create_user(email=email, username=username, password=password, role='host')
             user.save()
             messages.success(request, 'User registered successfully.')
-            return redirect('login')  # Replace with your login URL name
+            return redirect('login')
         except Exception as e:
             messages.error(request, str(e))
 
@@ -56,35 +59,25 @@ def register_auditorium(request):
         password2 = request.POST.get('password2')
         location = request.POST.get('location')
         capacity = request.POST.get('capacity')
-        features = request.POST.get('features')
         price = request.POST.get('price')
-        ac = request.POST.get('ac')
         images = request.FILES.get('images')
-
-        print("Form data:", username, email, password1, password2, location, capacity, features, price, ac, images)
 
         if password1 == password2:
             if not User.objects.filter(email=email).exists():
                 try:
-                    # Create the user
-                    user = User.objects.create_user(username=username, email=email, password=password1)
-                    print("User created successfully:", user)  # Debugging
-
-                    # Create the auditorium
-                    Auditorium.objects.create(
-                        user=user,  # Assigning the User instance to the ForeignKey field
+                    user = User.objects.create_user(username=username, email=email, password=password1, role='host')
+                    auditorium = Auditorium.objects.create(
+                        user=user,
                         location=location,
                         capacity=capacity,
-                        features=features,
                         price=price,
-                        ac=ac,
-                        images=images
+                        images=images,
+                        approved=False
                     )
-                    print("Auditorium created successfully!")  # Debugging
-                    return redirect('login')  # Replace 'login' with the appropriate URL name
+                    messages.success(request, 'Auditorium registration request sent for approval.')
+                    return redirect('login')
                 except Exception as e:
-                    print("Error creating auditorium:", e)  # Debugging
-                    messages.error(request, 'An error occurred while creating the auditorium.')
+                    messages.error(request, 'An error occurred while creating the auditorium request.')
             else:
                 messages.error(request, 'Email already exists.')
         else:
@@ -92,16 +85,18 @@ def register_auditorium(request):
 
     return render(request, 'register_auditorium.html')
 
-
 @login_required
 def event_host_index(request):
     return render(request, 'event_host_index.html')
 
 @login_required
 def user_index(request):
-    auditoriums = Auditorium.objects.all()
-    print(auditoriums)
-    return render(request, 'user_index.html')
+    auditoriums = Auditorium.objects.filter(approved=True)
+    context = {
+        'auditoriums': auditoriums,
+        'user': request.user,
+    }
+    return render(request, 'user_index.html', context)
 
 def event_schedules(request):
     return render(request, 'event_schedules.html')
@@ -109,3 +104,51 @@ def event_schedules(request):
 def user_bookings(request):
     return render(request, 'user_bookings.html')
 
+def auditorium_list(request):
+    auditoriums = Auditorium.objects.all()
+    return render(request, 'auditorium_list.html', {
+        'auditoriums': auditoriums,
+        'STRIPE_PUBLISHABLE_KEY': settings.STRIPE_PUBLISHABLE_KEY,
+    })
+
+@csrf_exempt
+def create_checkout_session(request, auditorium_id):
+    auditorium = Auditorium.objects.get(pk=auditorium_id)
+    success_url = f"{request.scheme}://{request.get_host()}/success/"
+    cancel_url = f"{request.scheme}://{request.get_host()}/cancel/"
+
+    try:
+        session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'inr',
+                    'product_data': {
+                        'name': auditorium.user.username,
+                    },
+                    'unit_amount': int(auditorium.price * 100),
+                },
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url=success_url,
+            cancel_url=cancel_url,
+        )
+        return JsonResponse({'sessionId': session.id})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+def capture_payment(request, session_id):
+    try:
+        session = stripe.checkout.Session.retrieve(session_id)
+        payment_intent = session.payment_intent
+        stripe.PaymentIntent.capture(payment_intent)
+        return JsonResponse({'status': 'success'})
+    except stripe.error.StripeError as e:
+        return JsonResponse({'error': str(e)})
+
+def success_view(request):
+    return render(request, 'success.html')
+
+def cancel_view(request):
+    return render(request, 'cancel.html')

@@ -101,6 +101,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 AUTH_USER_MODEL = 'auditorium.User'
 
+
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
@@ -126,3 +127,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR,'auditorium/static/images')
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# stripe payment gateway keys
+STRIPE_SECRET_KEY = 'sk_test_51PYPLEEowOqVQOI5EO3xfdxlXeZumfYIelTtbrWLCdCsipg9l3E2BmQafQ5hstCRoogt9qXI8CJPGIgRswhNDnVd00alIj4ZC2'
+STRIPE_PUBLISHABLE_KEY = 'pk_test_51PYPLEEowOqVQOI54dUnOGDc6SmTpV9PCpG0Q0W89o6FgyogO3SGmB5idiNPU9MZq30cgZ8YPdlWT51534NfP4Z400nV18eygD'
