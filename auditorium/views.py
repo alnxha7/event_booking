@@ -1,12 +1,13 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import login as auth_login, authenticate, get_user_model
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from .models import User, Auditorium
+from .models import User, Auditorium, AuditoriumFeature
 import stripe
+from django.forms import inlineformset_factory
 
 User = get_user_model()
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -36,9 +37,10 @@ def register_user(request):
         email = request.POST.get('email')
         username = request.POST.get('username')
         password = request.POST.get('password')
+        role = 'user'  # Default role for user registration
 
         try:
-            user = User.objects.create_user(email=email, username=username, password=password, role='host')
+            user = User.objects.create_user(email=email, username=username, password=password, role=role)
             user.save()
             messages.success(request, 'User registered successfully.')
             return redirect('login')
@@ -46,6 +48,7 @@ def register_user(request):
             messages.error(request, str(e))
 
     return render(request, 'register_user.html')
+
 
 def register_auditorium(request):
     if request.method == 'POST':
@@ -87,7 +90,57 @@ def register_auditorium(request):
 
 @login_required
 def event_host_index(request):
-    return render(request, 'event_host_index.html')
+    auditorium = Auditorium.objects.get(user=request.user)  # Assuming only one auditorium per user for simplicity
+
+    AuditoriumFeatureFormset = inlineformset_factory(
+        Auditorium,
+        AuditoriumFeature,
+        fields=('feature', 'amount'),
+        extra=1,  # Number of extra forms
+    )
+
+    if request.method == 'POST':
+        formset = AuditoriumFeatureFormset(request.POST, instance=auditorium)
+        if formset.is_valid():
+            formset.save()
+            return redirect('event_host_index')  # Redirect to the same page after submission
+    else:
+        formset = AuditoriumFeatureFormset(instance=auditorium)
+
+    context = {
+        'formset': formset,
+        'auditorium': auditorium,
+    }
+    return render(request, 'event_host_index.html', context)
+
+@login_required
+def event_features(request):
+    auditorium = get_object_or_404(Auditorium, user=request.user)
+
+    AuditoriumFeatureFormSet = inlineformset_factory(
+        Auditorium,
+        AuditoriumFeature,
+        fields=('feature', 'amount'),  # Ensure 'feature' is included here
+        extra=1,
+        can_delete=True,
+    )
+
+    if request.method == 'POST':
+        formset = AuditoriumFeatureFormSet(request.POST, instance=auditorium)
+        if formset.is_valid():
+            formset.save()
+            messages.success(request, "Features updated successfully.")
+            return redirect('event_host_index')
+        else:
+            messages.error(request, "There was an error updating features.")
+    else:
+        formset = AuditoriumFeatureFormSet(instance=auditorium)
+
+    context = {
+        'formset': formset,
+        'auditorium': auditorium,
+    }
+    return render(request, 'event_features.html', context)
 
 @login_required
 def user_index(request):

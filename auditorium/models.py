@@ -50,7 +50,20 @@ class Auditorium(models.Model):
     def __str__(self):
         return f"Auditorium {self.user.username}"
 
+class Feature(models.Model):
+    name = models.CharField(max_length=100)
+    cost = models.DecimalField(max_digits=10, decimal_places=2)
 
+    def __str__(self):
+        return self.name
+
+class AuditoriumFeature(models.Model):
+    auditorium = models.ForeignKey(Auditorium, related_name='features', on_delete=models.CASCADE)
+    feature = models.CharField(max_length=100)  # Example field definition
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.feature} - {self.amount}"
     
 # class Booking(models.Model):
 #     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)

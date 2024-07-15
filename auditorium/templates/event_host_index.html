@@ -47,7 +47,10 @@
                     <a href="/"><i class="fa fa-home"></i> Logout</a>
                 </li>
                 <li>
-                    <a href="/"><i class="fa fa-home"></i> My Schedules</a>
+                    <a href="{% url 'event_schedules' %}"><i class="fa fa-home"></i> My Schedules</a>
+                </li>
+				<li>
+                    <a href="{% url 'event_features' %}"><i class="fa fa-star"></i> Features</a>
                 </li>
             </ul>
 			<div class="social">
@@ -89,78 +92,6 @@
 				</div>
 			</div><!-- header -->
 
-			<div class="content-block parallax" id="services">
-				<div class="container text-center">
-					<header class="block-heading cleafix">
-						<h1>Our Services</h1>
-						<p>A little about what we do</p>
-					</header>
-					<section class="block-body">
-						<div class="row">
-							<div class="col-md-4">
-								<div class="service">
-									<i class="fa fa-calendar"></i>
-									<h2>Select Your Event Date</h2>
-									<p>choose your date for your event</p>
-								</div>
-							</div>
-							<div class="col-md-4">
-								<div class="service">
-									<i class="fa fa-heart-o"></i>
-									<h2>Book Your Slot For Your Hall</h2>
-									<p>book your hall</p>
-								</div>
-							</div>
-							<div class="col-md-4">
-								<div class="service">
-									<i class="fa fa-camera-retro"></i>
-									<h2>Celebrate Your Memorable Day With Us</h2>
-									<p>celebrate your memorable day</p>
-								</div>
-							</div>
-						</div>
-					</section>
-				</div>
-			</div><!-- #services -->
-
-			<div class="content-block" id="testimonials">
-				<div class="container">
-					<header class="block-heading cleafix">
-						<h1>Testimonials</h1>
-						<p>Some happy customers have to say.</p>
-					</header>
-					<section class="block-body">
-						<div class="row">
-							<div class="col-md-4">
-								<div class="testimonial">
-									<img src="../static/images/user.png">
-									<p>We Conducted Our Marriage Here...! Such a Beautiful The Day Was</p>
-									<strong>Lakshmi</strong><br/>
-									<span>2023 Nov 12</span>
-								</div>
-							</div>
-							<div class="col-md-4">
-								<div class="testimonial">
-									<img src="../static/images/user.png">
-									<p>We Conducted Our College Arts Day and We Celebrated Very Well</p>
-									<strong>Sir. Issac Abel</strong><br/>
-									<span>2023 Dec 22</span>
-								</div>
-							</div>
-							<div class="col-md-4">
-								<div class="testimonial">
-									<img src="../static/images/user.png">
-									<p>We Book a Hall for Our College Programme and that was good</p>
-									<strong>Akshay</strong><br/>
-									<span>2024 Feb 17</span>
-								</div>
-							</div>
-						</div>
-					</section>
-				</div>
-			</div><!-- /#testimonials -->
-
-
 			<div class="content-block" id="contact">
 				<div class="container text-center">
 					<header class="block-heading cleafix">
@@ -183,10 +114,6 @@
 				<div class="container">
 					<div class="row">
 						<div class="col-xs-6">&copy; Copyright 2024</div>
-						{% if auditorium.images %}
-        					<p>Current Image:</p>
-        					<img src="{{ auditorium.images.url }}" alt="Auditorium Image" style="width:200px;">
-   						{% endif %}
 					</div>
 				</div>
 			</div><!-- #footer -->
