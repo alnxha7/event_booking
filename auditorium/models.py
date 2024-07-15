@@ -15,7 +15,7 @@ class CustomUserManager(BaseUserManager):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         return self.create_user(email, username, password, **extra_fields)
-    
+
 class User(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=150, unique=True)
     email = models.EmailField(unique=True)
@@ -48,7 +48,8 @@ class Auditorium(models.Model):
     approved = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.user.email}'s Auditorium"
+        return f"Auditorium {self.user.username}"
+
 
     
 # class Booking(models.Model):

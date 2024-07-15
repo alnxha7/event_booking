@@ -19,18 +19,14 @@ def login_view(request):
         email = request.POST.get('email')
         password = request.POST.get('password')
 
-        print(f"Attempting to authenticate user: {email}")  # Debugging line
-
         user = authenticate(request, email=email, password=password)
         if user is not None:
-            print(f"Authentication successful for user: {email}")  # Debugging line
             auth_login(request, user)
             if user.role == 'user':
                 return redirect('user_index')
             else:
                 return redirect('event_host_index')
         else:
-            print(f"Authentication failed for user: {email}")  # Debugging line
             messages.error(request, 'Invalid email or password.')
 
     return render(request, 'login.html')
@@ -66,6 +62,8 @@ def register_auditorium(request):
             if not User.objects.filter(email=email).exists():
                 try:
                     user = User.objects.create_user(username=username, email=email, password=password1, role='host')
+                    user.save()
+
                     auditorium = Auditorium.objects.create(
                         user=user,
                         location=location,
@@ -74,10 +72,12 @@ def register_auditorium(request):
                         images=images,
                         approved=False
                     )
+                    auditorium.save()
+
                     messages.success(request, 'Auditorium registration request sent for approval.')
                     return redirect('login')
                 except Exception as e:
-                    messages.error(request, 'An error occurred while creating the auditorium request.')
+                    messages.error(request, f'An error occurred while creating the auditorium request: {e}')
             else:
                 messages.error(request, 'Email already exists.')
         else:
