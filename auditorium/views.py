@@ -1,3 +1,4 @@
+from django import forms
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import login as auth_login, authenticate, get_user_model
@@ -5,9 +6,9 @@ from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from .models import User, Auditorium, AuditoriumFeature
+from .models import User, Auditorium, Feature
 import stripe
-from django.forms import inlineformset_factory
+from django.forms import inlineformset_factory, modelformset_factory
 
 User = get_user_model()
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -94,8 +95,8 @@ def event_host_index(request):
 
     AuditoriumFeatureFormset = inlineformset_factory(
         Auditorium,
-        AuditoriumFeature,
-        fields=('feature', 'amount'),
+        Feature,
+        fields=('name', 'amount'),  # Corrected field names
         extra=1,  # Number of extra forms
     )
 
@@ -114,31 +115,39 @@ def event_host_index(request):
     return render(request, 'event_host_index.html', context)
 
 @login_required
-def event_features(request):
-    auditorium = get_object_or_404(Auditorium, user=request.user)
+def event_features(request, auditorium_id):
+    auditorium = get_object_or_404(Auditorium, id=auditorium_id)
+    features = Feature.objects.filter(auditorium=auditorium)  # Filter features for the specific auditorium
 
-    AuditoriumFeatureFormSet = inlineformset_factory(
-        Auditorium,
-        AuditoriumFeature,
-        fields=('feature', 'amount'),  # Ensure 'feature' is included here
-        extra=1,
-        can_delete=True,
-    )
+    # Define a basic form class directly in the view
+    class FeatureForm(forms.ModelForm):
+        class Meta:
+            model = Feature  # Specify the model for the form
+            fields = ['name', 'amount']  # Specify fields to include in the form
 
     if request.method == 'POST':
-        formset = AuditoriumFeatureFormSet(request.POST, instance=auditorium)
-        if formset.is_valid():
-            formset.save()
-            messages.success(request, "Features updated successfully.")
-            return redirect('event_host_index')
-        else:
-            messages.error(request, "There was an error updating features.")
+        # Handle the feature addition form
+        if 'add_feature' in request.POST:
+            form = FeatureForm(request.POST)
+            if form.is_valid():
+                feature = form.save(commit=False)
+                feature.auditorium = auditorium
+                feature.save()
+                return redirect('event_features', auditorium_id=auditorium_id)
+        
+        # Handle the feature deletion
+        elif 'delete_features' in request.POST:
+            feature_ids = request.POST.getlist('feature_ids')
+            Feature.objects.filter(id__in=feature_ids).delete()
+            return redirect('event_features', auditorium_id=auditorium_id)
+
     else:
-        formset = AuditoriumFeatureFormSet(instance=auditorium)
+        form = FeatureForm()
 
     context = {
-        'formset': formset,
         'auditorium': auditorium,
+        'features': features,
+        'form': form,
     }
     return render(request, 'event_features.html', context)
 

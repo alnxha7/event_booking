@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin, Group, Permission
+from django.conf import settings
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, username, password=None, **extra_fields):
@@ -41,29 +42,25 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 class Auditorium(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    location = models.CharField(max_length=255, null=True, blank=True)
-    capacity = models.IntegerField(null=True, blank=True)
-    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    images = models.ImageField(upload_to='auditorium_images/', null=True, blank=True)
-    approved = models.BooleanField(default=False)
-
-    def __str__(self):
-        return f"Auditorium {self.user.username}"
+    location = models.CharField(max_length=255)
+    capacity = models.IntegerField()
+    features = models.ManyToManyField('Feature', related_name='auditoriums', blank=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    images = models.ImageField(upload_to='auditorium_images/', blank=True, default='../static/images/blue_mac2.jpg')
+    approved = models.BooleanField(default=False)  # Ensure this field exists
 
 class Feature(models.Model):
-    name = models.CharField(max_length=100)
-    cost = models.DecimalField(max_digits=10, decimal_places=2)
-
-    def __str__(self):
-        return self.name
-
-class AuditoriumFeature(models.Model):
-    auditorium = models.ForeignKey(Auditorium, related_name='features', on_delete=models.CASCADE)
-    feature = models.CharField(max_length=100)  # Example field definition
+    name = models.CharField(max_length=255)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
+    auditorium = models.ForeignKey(Auditorium, related_name='auditorium_features', on_delete=models.CASCADE)
 
-    def __str__(self):
-        return f"{self.feature} - {self.amount}"
+# class AuditoriumFeature(models.Model):
+#     auditorium = models.ForeignKey(Auditorium, related_name='features', on_delete=models.CASCADE)
+#     feature = models.CharField(max_length=100)  # Example field definition
+#     amount = models.DecimalField(max_digits=10, decimal_places=2)
+
+#     def __str__(self):
+#         return f"{self.feature} - {self.amount}"
     
 # class Booking(models.Model):
 #     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
