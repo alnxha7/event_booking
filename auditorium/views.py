@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from .models import User, Auditorium, Feature
+from .models import User, Auditorium, Feature, AuditoriumImage
 import stripe
 from django.forms import inlineformset_factory, modelformset_factory
 
@@ -117,37 +117,52 @@ def event_host_index(request):
 @login_required
 def event_features(request, auditorium_id):
     auditorium = get_object_or_404(Auditorium, id=auditorium_id)
-    features = Feature.objects.filter(auditorium=auditorium)  # Filter features for the specific auditorium
+    features = Feature.objects.filter(auditorium=auditorium)
+    images = AuditoriumImage.objects.filter(auditorium=auditorium)
 
-    # Define a basic form class directly in the view
     class FeatureForm(forms.ModelForm):
         class Meta:
-            model = Feature  # Specify the model for the form
-            fields = ['name', 'amount']  # Specify fields to include in the form
+            model = Feature
+            fields = ['name', 'amount']
+
+    class ImageForm(forms.ModelForm):
+        class Meta:
+            model = AuditoriumImage
+            fields = ['image']
+
+    feature_form = FeatureForm()
+    image_form = ImageForm()
 
     if request.method == 'POST':
-        # Handle the feature addition form
         if 'add_feature' in request.POST:
-            form = FeatureForm(request.POST)
-            if form.is_valid():
-                feature = form.save(commit=False)
+            feature_form = FeatureForm(request.POST)
+            if feature_form.is_valid():
+                feature = feature_form.save(commit=False)
                 feature.auditorium = auditorium
                 feature.save()
                 return redirect('event_features', auditorium_id=auditorium_id)
-        
-        # Handle the feature deletion
+        elif 'add_image' in request.POST:
+            image_form = ImageForm(request.POST, request.FILES)
+            if image_form.is_valid():
+                image = image_form.save(commit=False)
+                image.auditorium = auditorium
+                image.save()
+                return redirect('event_features', auditorium_id=auditorium_id)
         elif 'delete_features' in request.POST:
             feature_ids = request.POST.getlist('feature_ids')
             Feature.objects.filter(id__in=feature_ids).delete()
             return redirect('event_features', auditorium_id=auditorium_id)
-
-    else:
-        form = FeatureForm()
+        elif 'delete_images' in request.POST:
+            image_ids = request.POST.getlist('image_ids')
+            AuditoriumImage.objects.filter(id__in=image_ids).delete()
+            return redirect('event_features', auditorium_id=auditorium_id)
 
     context = {
         'auditorium': auditorium,
         'features': features,
-        'form': form,
+        'images': images,
+        'feature_form': feature_form,
+        'image_form': image_form,
     }
     return render(request, 'event_features.html', context)
 

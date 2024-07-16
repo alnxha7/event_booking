@@ -54,6 +54,10 @@ class Feature(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     auditorium = models.ForeignKey(Auditorium, related_name='auditorium_features', on_delete=models.CASCADE)
 
+class AuditoriumImage(models.Model):
+    auditorium = models.ForeignKey(Auditorium, related_name='auditorium_images', on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='auditorium_images/')
+
 # class AuditoriumFeature(models.Model):
 #     auditorium = models.ForeignKey(Auditorium, related_name='features', on_delete=models.CASCADE)
 #     feature = models.CharField(max_length=100)  # Example field definition
