@@ -175,8 +175,10 @@ def user_index(request):
     }
     return render(request, 'user_index.html', context)
 
-def event_schedules(request):
-    return render(request, 'event_schedules.html')
+@login_required
+def event_schedules(request, auditorium_id):
+    auditorium = get_object_or_404(Auditorium, id=auditorium_id)
+    return render(request, 'event_schedules.html', {'auditorium': auditorium})
 
 def user_bookings(request):
     return render(request, 'user_bookings.html')

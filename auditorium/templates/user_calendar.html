@@ -18,7 +18,6 @@
             text-align: center;
             padding: 20px; /* Increased padding */
             height: 40px; /* Increased cell height */
-            cursor: pointer; /* Change cursor to pointer for clickable dates */
         }
         .calendar th {
             background-color: #f2f2f2;
@@ -27,13 +26,6 @@
             background-color: #ffff99; /* Light yellow background for today's date */
             font-weight: bold; /* Bold text for today's date */
             border-radius: 50%; /* Round the corners for today's date */
-        }
-        .booked {
-            background-color: #ff9999; /* Light red background for booked dates */
-        }
-        .past-date {
-            color: #cccccc; /* Light grey color for past dates */
-            cursor: not-allowed; /* Change cursor to not-allowed for past dates */
         }
         .back-btn {
             display: inline-block;
@@ -62,13 +54,12 @@
     </style>
 </head>
 <body>
-    <h1>Event Schedules for {{ auditorium.user.username }}</h1>
+    <h1>Event Schedules</h1>
 
     <div class="date-picker-container">
         <label for="datePicker">Choose Your Date: </label>
-        <input type="date" id="datePicker" min="">
+        <input type="date" id="datePicker">
         <button onclick="jumpToDate()">Enter</button>
-        <button onclick="jumpToToday()">Today</button>
     </div>
 
     <table id="calendar" class="calendar">
@@ -88,11 +79,9 @@
         </tbody>
     </table>
 
-    <a class="back-btn" href="{% url 'event_host_index' %}">Back</a>
+    <a class="back-btn" href="{% url 'user_index' %}">Back</a>
 
     <script>
-        let bookedDates = {}; // Object to store booked dates
-
         // Function to generate and display calendar
         function generateCalendar(year, month) {
             var table = document.getElementById('calendar').getElementsByTagName('tbody')[0];
@@ -122,46 +111,14 @@
                     } else {
                         var cell = row.insertCell();
                         cell.textContent = date;
-                        var cellDate = new Date(year, month, date);
-
-                        // Disable past dates
-                        if (cellDate < today) {
-                            cell.classList.add('past-date');
-                        } else {
-                            cell.onclick = (function(d) {
-                                return function() {
-                                    handleDateClick(d, year, month);
-                                };
-                            })(date);
-                        }
-
                         if (year === currentYear && month === currentMonth && date === currentDate) {
                             // Highlight today's date with a different class
                             cell.classList.add('today');
-                        }
-                        if (bookedDates[`${year}-${month + 1}-${date}`]) {
-                            // Highlight booked dates
-                            cell.classList.add('booked');
                         }
                         date++;
                     }
                 }
             }
-        }
-
-        // Function to handle date click
-        function handleDateClick(date, year, month) {
-            const dateKey = `${year}-${month + 1}-${date}`;
-            if (bookedDates[dateKey]) {
-                if (confirm(`Mark ${dateKey} as vacant?`)) {
-                    delete bookedDates[dateKey];
-                }
-            } else {
-                if (confirm(`Mark ${dateKey} as booked?`)) {
-                    bookedDates[dateKey] = true;
-                }
-            }
-            generateCalendar(year, month);
         }
 
         // Function to jump to selected date
@@ -172,23 +129,12 @@
             generateCalendar(year, month);
         }
 
-        // Function to jump to today's date
-        function jumpToToday() {
-            var today = new Date();
-            var year = today.getFullYear();
-            var month = today.getMonth();
-            generateCalendar(year, month);
-        }
-
         // Display current month calendar on page load
         document.addEventListener('DOMContentLoaded', function() {
             var today = new Date();
             var year = today.getFullYear();
             var month = today.getMonth();
             generateCalendar(year, month);
-
-            // Disable past dates in the date picker
-            document.getElementById('datePicker').setAttribute('min', today.toISOString().split('T')[0]);
         });
     </script>
 </body>
