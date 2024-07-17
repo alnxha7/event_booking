@@ -255,6 +255,16 @@ def book_calendar(request, auditorium_id):
     booked_dates_json = json.dumps(booked_dates)
     return render(request, 'book_calendar.html', {'auditorium': auditorium, 'booked_dates_json': booked_dates_json})
 
+def auditorium_details(request, auditorium_id):
+    auditorium = get_object_or_404(Auditorium, id=auditorium_id)
+    date = request.GET.get('date')
+    features = auditorium.auditorium_features.all()
+    return render(request, 'auditorium_details.html', {
+        'auditorium': auditorium,
+        'date': date,
+        'features': features
+    })
+
 @csrf_exempt
 def create_checkout_session(request, auditorium_id):
     auditorium = Auditorium.objects.get(pk=auditorium_id)
