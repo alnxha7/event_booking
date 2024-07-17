@@ -5,7 +5,7 @@
     <title>Event Management</title>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale = 1.0, maximum-scale=1.0, user-scalable=no"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
     <link rel='stylesheet' href='http://fonts.googleapis.com/css?family=PT+Sans'>
     <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Droid+Serif:regular,bold"/>
     <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Alegreya+Sans:regular,italic,bold,bolditalic"/>
@@ -42,6 +42,59 @@
         .auditorium-tile a, .auditorium-tile button {
             margin-top: 10px;
         }
+        .calendar {
+            font-family: Arial, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        .calendar th, .calendar td {
+            border: 1px solid #dddddd;
+            text-align: center;
+            padding: 10px;
+            height: 40px;
+            cursor: pointer;
+        }
+        .calendar th {
+            background-color: #f2f2f2;
+        }
+        .today {
+            background-color: #ffff99;
+            font-weight: bold;
+            border-radius: 50%;
+        }
+        .booked {
+            background-color: #ff9999;
+        }
+        .past-date {
+            color: #cccccc;
+            cursor: not-allowed;
+        }
+        .date-picker-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .date-picker-container label, .date-picker-container input, .date-picker-container button {
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        .back-btn {
+            display: inline-block;
+            background: #333;
+            color: #fff;
+            padding: 10px 20px;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+            margin-left: 20px;
+        }
+        .back-btn:hover {
+            background-color: rgb(180, 180, 180);
+            color: #333;
+        }
     </style>
 </head>
 <body>
@@ -53,9 +106,6 @@
         <ul class="nav nav-pills nav-stacked">
             <li>
                 <a href="/"><i class="fa fa-home"></i> Logout</a>
-            </li>
-            <li>
-                <a href="{ url 'my_schedule' }"><i class="fa fa-calendar"></i> My Schedules</a>
             </li>
         </ul>
         <div class="social">
@@ -104,11 +154,8 @@
                     {% endif %}
                     <h3>{{ auditorium.user.username }}</h3>
                     <p>Price: {{ auditorium.price }}</p>
-                    <a href="{% url 'auditorium_list' %}">View Details</a>
-                    <form id="payment-form-{{ auditorium.id }}">
-                        {% csrf_token %}
-                        <button type="button">Book Now</button>
-                    </form>
+                    <a href="{% url 'auditorium_list' auditorium.id %}" class="view-details" data-auditorium-id="{{ auditorium.id }}">View Details</a>
+                    <!-- No need for booking details here -->
                 </div>
                 {% endfor %}
             {% else %}
@@ -146,9 +193,93 @@
     <script src="../static/js/jquery-2.1.3.min.js"></script>
     <script src="../static/js/jquery-migrate-1.2.1.min.js"></script>
     <script src="../static/js/bootstrap.min.js"></script>
-    <script src="../static/js/jquery.actual.min.js"></script>
-    <script src="../static/js/jquery.scrollTo.min.js"></script>
-    <script src="../static/js/script.js"></script>
-    <script src="https://js.stripe.com/v3/"></script>
+    <script src="../static/js/custom.js"></script>
+    <script>
+        // JavaScript for handling booking dates
+        var bookedDates = {};
+        var currentYear = new Date().getFullYear();
+        var currentMonth = new Date().getMonth();
+
+        function generateCalendar(auditoriumId, year, month) {
+            var firstDay = new Date(year, month).getDay();
+            var lastDate = new Date(year, month + 1, 0).getDate();
+            var calendarBody = document.querySelector('#calendar-' + auditoriumId + ' tbody');
+            calendarBody.innerHTML = '';
+
+            var date = 1;
+            for (var i = 0; i < 6; i++) {
+                var row = document.createElement('tr');
+
+                for (var j = 0; j < 7; j++) {
+                    var cell = document.createElement('td');
+                    if (i === 0 && j < firstDay) {
+                        var cellText = document.createTextNode('');
+                        cell.appendChild(cellText);
+                        row.appendChild(cell);
+                    } else if (date > lastDate) {
+                        break;
+                    } else {
+                        var cellText = document.createTextNode(date);
+                        cell.appendChild(cellText);
+
+                        var dateString = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(date).padStart(2, '0');
+                        if (bookedDates[dateString]) {
+                            cell.classList.add('booked');
+                            cell.onclick = (function(dateString) {
+                                return function() {
+                                    alert('This date is already booked.');
+                                }
+                            })(dateString);
+                        } else if (new Date(year, month, date) < new Date()) {
+                            cell.classList.add('past-date');
+                        } else {
+                            cell.onclick = (function(dateString) {
+                                return function() {
+                                    handleDateClick(auditoriumId, dateString);
+                                }
+                            })(dateString);
+                        }
+                        if (new Date().toDateString() === new Date(year, month, date).toDateString()) {
+                            cell.classList.add('today');
+                        }
+
+                        row.appendChild(cell);
+                        date++;
+                    }
+                }
+                calendarBody.appendChild(row);
+            }
+        }
+
+        function handleDateClick(auditoriumId, dateString) {
+            if (bookedDates[dateString]) {
+                alert('This date is already booked.');
+            } else {
+                var confirmBooking = confirm(`Do you want to book ${dateString}?`);
+                if (confirmBooking) {
+                    sendBookingRequest(auditoriumId, dateString);
+                }
+            }
+        }
+        function bookDate(auditoriumId) {
+            var datePicker = document.getElementById('datePicker-' + auditoriumId);
+            var selectedDate = new Date(datePicker.value);
+            currentYear = selectedDate.getFullYear();
+            currentMonth = selectedDate.getMonth();
+            generateCalendar(auditoriumId, currentYear, currentMonth);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var viewDetailsLinks = document.querySelectorAll('.view-details');
+            viewDetailsLinks.forEach(function(link) {
+                link.addEventListener('click', function(event) {
+                    var auditoriumId = event.target.getAttribute('data-auditorium-id');
+                    var bookingDetails = document.getElementById('booking-details-' + auditoriumId);
+                    bookingDetails.style.display = 'block';
+                    generateCalendar(auditoriumId, currentYear, currentMonth);
+                });
+            });
+        });
+    </script>
 </body>
 </html>

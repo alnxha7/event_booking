@@ -68,20 +68,4 @@ class Booking(models.Model):
     def __str__(self):
         return f'{self.auditorium} booked by {self.user} on {self.date}'
 
-# class AuditoriumFeature(models.Model):
-#     auditorium = models.ForeignKey(Auditorium, related_name='features', on_delete=models.CASCADE)
-#     feature = models.CharField(max_length=100)  # Example field definition
-#     amount = models.DecimalField(max_digits=10, decimal_places=2)
-
-#     def __str__(self):
-#         return f"{self.feature} - {self.amount}"
-    
-# class Booking(models.Model):
-#     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-#     auditorium = models.ForeignKey(Auditorium, on_delete=models.CASCADE)
-#     booking_date = models.DateTimeField(auto_now_add=True)
-#     paid = models.BooleanField(default=False)
-
-#     def __str__(self):
-#         return f"{self.user.username} - {self.auditorium.user.username} - {'Paid' if self.paid else 'Not Paid'}"
     

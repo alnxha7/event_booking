@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Event Schedules</title>
+    <style>
+        /* Your calendar CSS styles */
+    </style>
+</head>
+<body>
+    <h1>User Event Schedules for {{ auditorium.user.username }}</h1>
+
+    <div class="date-picker-container">
+        <!-- Date picker elements -->
+    </div>
+
+    <table id="calendar" class="calendar">
+        <!-- Calendar structure -->
+        <thead>
+            <tr>
+                <th>Sun</th>
+                <th>Mon</th>
+                <th>Tue</th>
+                <th>Wed</th>
+                <th>Thu</th>
+                <th>Fri</th>
+                <th>Sat</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Calendar dates will be dynamically generated here -->
+        </tbody>
+    </table>
+
+    <!-- Back button or link -->
+    <a class="back-btn" href="{% url 'event_host_index' %}">Back</a>
+
+    <script>
+        var vacantDates = JSON.parse('{{ vacant_dates_json|escapejs }}');
+        var currentYear = new Date().getFullYear();
+        var currentMonth = new Date().getMonth();
+
+        function generateCalendar(year, month) {
+            var firstDay = new Date(year, month).getDay();
+            var lastDate = new Date(year, month + 1, 0).getDate();
+            var calendarBody = document.querySelector('#calendar tbody');
+            calendarBody.innerHTML = '';
+
+            var date = 1;
+            for (var i = 0; i < 6; i++) {
+                var row = document.createElement('tr');
+
+                for (var j = 0; j < 7; j++) {
+                    var cell = document.createElement('td');
+                    if (i === 0 && j < firstDay) {
+                        var cellText = document.createTextNode('');
+                        cell.appendChild(cellText);
+                        row.appendChild(cell);
+                    } else if (date > lastDate) {
+                        break;
+                    } else {
+                        var cellText = document.createTextNode(date);
+                        cell.appendChild(cellText);
+
+                        var dateString = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(date).padStart(2, '0');
+                        if (!vacantDates[dateString]) {
+                            cell.classList.add('booked');
+                        } else if (new Date(year, month, date) < new Date()) {
+                            cell.classList.add('past-date');
+                        } else {
+                            cell.onclick = (function(dateString) {
+                                return function() {
+                                    handleDateClick(dateString);
+                                }
+                            })(dateString);
+                        }
+                        if (new Date().toDateString() === new Date(year, month, date).toDateString()) {
+                            cell.classList.add('today');
+                        }
+
+                        row.appendChild(cell);
+                        date++;
+                    }
+                }
+                calendarBody.appendChild(row);
+            }
+        }
+
+        function handleDateClick(dateString) {
+            if (confirm(`Do you want to book ${dateString}?`)) {
+                // Implement your booking logic here
+                // You can redirect or perform other actions as needed
+                alert(`Booking for ${dateString} will be implemented here.`);
+            }
+        }
+
+        function jumpToDate() {
+            // Implement jump to specific date logic if needed
+        }
+
+        function jumpToToday() {
+            // Implement jump to today logic if needed
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            generateCalendar(currentYear, currentMonth);
+        });
+    </script>
+</body>
+</html>

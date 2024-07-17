@@ -12,7 +12,7 @@ import json
 from django.forms import inlineformset_factory
 from django.utils.dateparse import parse_date
 from django.views.decorators.http import require_POST
-from datetime import date
+from datetime import date, timedelta
 
 User = get_user_model()
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -94,6 +94,10 @@ def register_auditorium(request):
     return render(request, 'register_auditorium.html')
 
 @login_required
+def user_requests(request):
+    return render(request, 'user_requests.html')
+
+@login_required
 def event_host_index(request):
     auditorium = Auditorium.objects.get(user=request.user)  # Assuming only one auditorium per user for simplicity
 
@@ -171,15 +175,6 @@ def event_features(request, auditorium_id):
     return render(request, 'event_features.html', context)
 
 @login_required
-def user_index(request):
-    auditoriums = Auditorium.objects.filter(approved=True)
-    context = {
-        'auditoriums': auditoriums,
-        'user': request.user,
-    }
-    return render(request, 'user_index.html', context)
-
-@login_required
 def event_schedules(request, auditorium_id):
     auditorium = get_object_or_404(Auditorium, id=auditorium_id)
     bookings = Booking.objects.filter(auditorium=auditorium)
@@ -213,16 +208,52 @@ def manage_booking(request, auditorium_id):
         return JsonResponse({'status': 'cancelled', 'message': f'Booking for {booking_date} has been cancelled'})
     else:
         return JsonResponse({'status': 'booked', 'message': f'Booking for {booking_date} has been confirmed'})
+    
+@login_required
+def user_index(request):
+    auditoriums = Auditorium.objects.filter(approved=True)
+    context = {
+        'auditoriums': auditoriums,
+        'user': request.user,
+    }
+    return render(request, 'user_index.html', context)
+
+@login_required
+def user_event_schedules(request, auditorium_id):
+    auditorium = get_object_or_404(Auditorium, id=auditorium_id)
+    bookings = Booking.objects.filter(auditorium=auditorium)
+    
+    # Get all booked dates for the auditorium
+    booked_dates = {booking.date.strftime('%Y-%m-%d'): True for booking in bookings}
+
+    # Calculate all dates between today and a certain number of days in the future
+    start_date = date.today()
+    end_date = date.today() + timedelta(days=30)  # Adjust the number of days as needed
+    all_dates = [start_date + timedelta(days=i) for i in range((end_date - start_date).days + 1)]
+
+    # Determine vacant dates (dates that are not booked)
+    vacant_dates = {}
+    for d in all_dates:
+        date_str = d.strftime('%Y-%m-%d')
+        if date_str not in booked_dates:
+            vacant_dates[date_str] = False  # Use False to indicate vacant dates
+
+    vacant_dates_json = json.dumps(vacant_dates)
+    return render(request, 'user_event_schedules.html', {'auditorium': auditorium, 'vacant_dates_json': vacant_dates_json})
 
 def user_bookings(request):
     return render(request, 'user_bookings.html')
 
-def auditorium_list(request):
-    auditoriums = Auditorium.objects.all()
-    return render(request, 'auditorium_list.html', {
-        'auditoriums': auditoriums,
-        'STRIPE_PUBLISHABLE_KEY': settings.STRIPE_PUBLISHABLE_KEY,
-    })
+def auditorium_list(request, auditorium_id):
+    auditorium = Auditorium.objects.get(id=auditorium_id)
+    return render(request, 'auditorium_list.html', {'auditorium': auditorium})
+
+def book_calendar(request, auditorium_id):
+    auditorium = get_object_or_404(Auditorium, id=auditorium_id)
+    bookings = Booking.objects.filter(auditorium=auditorium)
+    booked_dates = {booking.date.strftime('%Y-%m-%d'): True for booking in bookings}
+    booked_dates_json = json.dumps(booked_dates)
+    return render(request, 'book_calendar.html', {'auditorium': auditorium, 'booked_dates_json': booked_dates_json})
 
 @csrf_exempt
 def create_checkout_session(request, auditorium_id):

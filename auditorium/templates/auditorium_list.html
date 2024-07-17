@@ -1,15 +1,36 @@
-<h2>Auditoriums</h2>
-<div class="auditorium-list">
-    {% for auditorium in auditoriums %}
-    <div class="auditorium">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auditorium Details</title>
+    <!-- Include your CSS stylesheets here -->
+</head>
+<body>
+    <h1>{{ auditorium.user.username }}</h1>
+
+    <div class="auditorium-details">
         {% if auditorium.images %}
-			<img src="{{ auditorium.images.url }}" alt="Image of {{ auditorium.user.username }}">
-		{% else %}
-			<img src="../static/images/blue_mac2.jpg" alt="Default Image">
-		{% endif %}
-        <h3>{{ auditorium.name }}</h3>
-        <p>{{ auditorium.is_ac|yesno:"AC,Non-AC" }}</p>
+            <img src="{{ auditorium.images.url }}" alt="Image of {{ auditorium.user.username }}">
+        {% else %}
+            <img src="../static/images/blue_mac2.jpg" alt="Default Image">
+        {% endif %}
+        <p>Location: {{ auditorium.location }}</p>
+        <p>Capacity: {{ auditorium.capacity }}</p>
         <p>Price: {{ auditorium.price }}</p>
+        <!-- Add more details as needed -->
+
+        <h2>Select Date for Booking</h2>
+        <div id="calendar-{{ auditorium.id }}"></div>
+        
+        <form id="booking-form" action="{% url 'book_calendar' auditorium.id %}" method="post">
+            {% csrf_token %}
+            <!-- Add your booking form elements here -->
+            <button type="submit">Book Slot</button>
+        </form>
     </div>
-    {% endfor %}
-</div>
+
+    <!-- Include your JavaScript files here -->
+    <script src="../static/js/app.js"></script>
+</body>
+</html>
