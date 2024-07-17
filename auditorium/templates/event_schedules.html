@@ -11,29 +11,29 @@
             border-collapse: collapse;
             width: 70%;
             margin: 20px auto;
-            font-size: 18px; /* Increased font size */
+            font-size: 18px;
         }
         .calendar th, .calendar td {
             border: 1px solid #dddddd;
             text-align: center;
-            padding: 20px; /* Increased padding */
-            height: 40px; /* Increased cell height */
-            cursor: pointer; /* Change cursor to pointer for clickable dates */
+            padding: 20px;
+            height: 40px;
+            cursor: pointer;
         }
         .calendar th {
             background-color: #f2f2f2;
         }
         .today {
-            background-color: #ffff99; /* Light yellow background for today's date */
-            font-weight: bold; /* Bold text for today's date */
-            border-radius: 50%; /* Round the corners for today's date */
+            background-color: #ffff99;
+            font-weight: bold;
+            border-radius: 50%;
         }
         .booked {
-            background-color: #ff9999; /* Light red background for booked dates */
+            background-color: #ff9999;
         }
         .past-date {
-            color: #cccccc; /* Light grey color for past dates */
-            cursor: not-allowed; /* Change cursor to not-allowed for past dates */
+            color: #cccccc;
+            cursor: not-allowed;
         }
         .back-btn {
             display: inline-block;
@@ -91,104 +91,117 @@
     <a class="back-btn" href="{% url 'event_host_index' %}">Back</a>
 
     <script>
-        let bookedDates = {}; // Object to store booked dates
+        var bookedDates = JSON.parse('{{ booked_dates_json|escapejs }}');
+        var currentYear = new Date().getFullYear();
+        var currentMonth = new Date().getMonth();
 
-        // Function to generate and display calendar
         function generateCalendar(year, month) {
-            var table = document.getElementById('calendar').getElementsByTagName('tbody')[0];
-            table.innerHTML = '';
-
-            var today = new Date();
-            var currentYear = today.getFullYear();
-            var currentMonth = today.getMonth();
-            var currentDate = today.getDate();
-
-            var firstDay = new Date(year, month, 1);
-            var lastDay = new Date(year, month + 1, 0);
-            var numDays = lastDay.getDate();
+            var firstDay = new Date(year, month).getDay();
+            var lastDate = new Date(year, month + 1, 0).getDate();
+            var calendarBody = document.querySelector('#calendar tbody');
+            calendarBody.innerHTML = '';
 
             var date = 1;
-            for (var i = 0; i < 6; i++) { // 6 rows for weeks in a month
-                var row = table.insertRow();
-                for (var j = 0; j < 7; j++) {
-                    if (i === 0 && j < firstDay.getDay()) {
-                        // Blank cells before the first day of the month
-                        var cell = row.insertCell();
-                        cell.textContent = '';
-                    } else if (date > numDays) {
-                        // Blank cells after the last day of the month
-                        var cell = row.insertCell();
-                        cell.textContent = '';
-                    } else {
-                        var cell = row.insertCell();
-                        cell.textContent = date;
-                        var cellDate = new Date(year, month, date);
+            for (var i = 0; i < 6; i++) {
+                var row = document.createElement('tr');
 
-                        // Disable past dates
-                        if (cellDate < today) {
+                for (var j = 0; j < 7; j++) {
+                    var cell = document.createElement('td');
+                    if (i === 0 && j < firstDay) {
+                        var cellText = document.createTextNode('');
+                        cell.appendChild(cellText);
+                        row.appendChild(cell);
+                    } else if (date > lastDate) {
+                        break;
+                    } else {
+                        var cellText = document.createTextNode(date);
+                        cell.appendChild(cellText);
+
+                        var dateString = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(date).padStart(2, '0');
+                        if (bookedDates[dateString]) {
+                            cell.classList.add('booked');
+                            cell.onclick = (function(dateString) {
+                                return function() {
+                                    handleDateClick(dateString);
+                                }
+                            })(dateString);
+                        } else if (new Date(year, month, date) < new Date()) {
                             cell.classList.add('past-date');
                         } else {
-                            cell.onclick = (function(d) {
+                            cell.onclick = (function(dateString) {
                                 return function() {
-                                    handleDateClick(d, year, month);
-                                };
-                            })(date);
+                                    handleDateClick(dateString);
+                                }
+                            })(dateString);
                         }
-
-                        if (year === currentYear && month === currentMonth && date === currentDate) {
-                            // Highlight today's date with a different class
+                        if (new Date().toDateString() === new Date(year, month, date).toDateString()) {
                             cell.classList.add('today');
                         }
-                        if (bookedDates[`${year}-${month + 1}-${date}`]) {
-                            // Highlight booked dates
-                            cell.classList.add('booked');
-                        }
+
+                        row.appendChild(cell);
                         date++;
                     }
                 }
+                calendarBody.appendChild(row);
             }
         }
 
-        // Function to handle date click
-        function handleDateClick(date, year, month) {
-            const dateKey = `${year}-${month + 1}-${date}`;
-            if (bookedDates[dateKey]) {
-                if (confirm(`Mark ${dateKey} as vacant?`)) {
-                    delete bookedDates[dateKey];
+        function handleDateClick(dateString) {
+            if (bookedDates[dateString]) {
+                if (confirm(`Do you want to cancel the booking for ${dateString}?`)) {
+                    sendBookingRequest(dateString, false); // Set book to false for cancelling
                 }
             } else {
-                if (confirm(`Mark ${dateKey} as booked?`)) {
-                    bookedDates[dateKey] = true;
+                if (confirm(`Do you want to book ${dateString}?`)) {
+                    sendBookingRequest(dateString, true); // Set book to true for booking
                 }
             }
-            generateCalendar(year, month);
         }
 
-        // Function to jump to selected date
+        function sendBookingRequest(dateString, book) {
+            var xhr = new XMLHttpRequest();
+            var url = "{% url 'manage_booking' auditorium.id %}";
+            xhr.open('POST', url, true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    if (xhr.status === 200) {
+                        var response = JSON.parse(xhr.responseText);
+                        if (response.status === 'booked') {
+                            bookedDates[dateString] = true;
+                        } else if (response.status === 'cancelled') {
+                            delete bookedDates[dateString];
+                        }
+                        generateCalendar(currentYear, currentMonth);
+                    } else {
+                        console.error('Booking request failed:', xhr.status);
+                    }
+                }
+            };
+            var data = JSON.stringify({
+                'date': dateString,
+                'book': book
+            });
+            xhr.send(data);
+        }
+
         function jumpToDate() {
-            var selectedDate = new Date(document.getElementById('datePicker').value);
-            var year = selectedDate.getFullYear();
-            var month = selectedDate.getMonth();
-            generateCalendar(year, month);
+            var datePicker = document.getElementById('datePicker');
+            var selectedDate = new Date(datePicker.value);
+            currentYear = selectedDate.getFullYear();
+            currentMonth = selectedDate.getMonth();
+            generateCalendar(currentYear, currentMonth);
         }
 
-        // Function to jump to today's date
         function jumpToToday() {
-            var today = new Date();
-            var year = today.getFullYear();
-            var month = today.getMonth();
-            generateCalendar(year, month);
+            currentYear = new Date().getFullYear();
+            currentMonth = new Date().getMonth();
+            generateCalendar(currentYear, currentMonth);
         }
 
-        // Display current month calendar on page load
         document.addEventListener('DOMContentLoaded', function() {
-            var today = new Date();
-            var year = today.getFullYear();
-            var month = today.getMonth();
-            generateCalendar(year, month);
-
-            // Disable past dates in the date picker
-            document.getElementById('datePicker').setAttribute('min', today.toISOString().split('T')[0]);
+            generateCalendar(currentYear, currentMonth);
         });
     </script>
 </body>

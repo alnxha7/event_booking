@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin, Group, Permission
 from django.conf import settings
+from django.utils import timezone
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, username, password=None, **extra_fields):
@@ -57,6 +58,15 @@ class Feature(models.Model):
 class AuditoriumImage(models.Model):
     auditorium = models.ForeignKey(Auditorium, related_name='auditorium_images', on_delete=models.CASCADE)
     image = models.ImageField(upload_to='auditorium_images/')
+
+class Booking(models.Model):
+    auditorium = models.ForeignKey('Auditorium', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    date = models.DateField()
+    booked_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f'{self.auditorium} booked by {self.user} on {self.date}'
 
 # class AuditoriumFeature(models.Model):
 #     auditorium = models.ForeignKey(Auditorium, related_name='features', on_delete=models.CASCADE)

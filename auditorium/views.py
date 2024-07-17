@@ -6,9 +6,13 @@ from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from .models import User, Auditorium, Feature, AuditoriumImage
+from .models import User, Auditorium, Feature, AuditoriumImage, Booking
 import stripe
-from django.forms import inlineformset_factory, modelformset_factory
+import json
+from django.forms import inlineformset_factory
+from django.utils.dateparse import parse_date
+from django.views.decorators.http import require_POST
+from datetime import date
 
 User = get_user_model()
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -178,7 +182,37 @@ def user_index(request):
 @login_required
 def event_schedules(request, auditorium_id):
     auditorium = get_object_or_404(Auditorium, id=auditorium_id)
-    return render(request, 'event_schedules.html', {'auditorium': auditorium})
+    bookings = Booking.objects.filter(auditorium=auditorium)
+    booked_dates = {booking.date.strftime('%Y-%m-%d'): True for booking in bookings}
+    booked_dates_json = json.dumps(booked_dates)
+    return render(request, 'event_schedules.html', {'auditorium': auditorium, 'booked_dates_json': booked_dates_json})
+
+@require_POST
+@login_required
+def manage_booking(request, auditorium_id):
+    auditorium = get_object_or_404(Auditorium, id=auditorium_id)
+    data = json.loads(request.body)
+    booking_date = data.get('date')
+    book = data.get('book', False)
+
+    if not booking_date or not isinstance(booking_date, str):
+        return JsonResponse({'status': 'error', 'message': 'Invalid date format'}, status=400)
+
+    try:
+        booking_date = date.fromisoformat(booking_date)
+    except ValueError:
+        return JsonResponse({'status': 'error', 'message': 'Invalid date format'}, status=400)
+
+    if booking_date < date.today():
+        return JsonResponse({'status': 'error', 'message': 'Cannot book past dates'}, status=400)
+
+    booking, created = Booking.objects.get_or_create(auditorium=auditorium, user=request.user, date=booking_date)
+
+    if not book:
+        booking.delete()
+        return JsonResponse({'status': 'cancelled', 'message': f'Booking for {booking_date} has been cancelled'})
+    else:
+        return JsonResponse({'status': 'booked', 'message': f'Booking for {booking_date} has been confirmed'})
 
 def user_bookings(request):
     return render(request, 'user_bookings.html')

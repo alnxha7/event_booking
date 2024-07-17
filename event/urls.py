@@ -31,6 +31,7 @@ urlpatterns = [
     path('event_features/<int:auditorium_id>/', views.event_features, name='event_features'),
     path('user_bookings/', views.user_bookings, name='user_bookings'),
     path('host_schedules/<int:auditorium_id>/', views.event_schedules, name='event_schedules'),
+    path('manage-booking/<int:auditorium_id>/', views.manage_booking, name='manage_booking'),
     path('auditorium_list/', views.auditorium_list, name='auditorium_list'),
     path('create-checkout-session/<int:auditorium_id>/', views.create_checkout_session, name='create_checkout_session'),
     path('success/', views.success_view, name='success'),
