@@ -57,6 +57,9 @@
 <body>
     <h1>Book Slot for {{ auditorium.user.username }}</h1>
 
+    <button onclick="jumpToDate()">Enter</button>
+    <button onclick="jumpToToday()">Today</button>
+
     <div class="calendar-container">
         <div id="calendar-{{ auditorium.id }}"></div>
         <a class='back-btn' href="{% url 'user_index' %}">Go Back</a>
@@ -133,6 +136,24 @@
             calendarBody.appendChild(table);
         }
     
+        document.addEventListener('DOMContentLoaded', function() {
+            generateCalendar(currentYear, currentMonth);
+        });
+
+        function jumpToDate() {
+            var datePicker = document.getElementById('datePicker');
+            var selectedDate = new Date(datePicker.value);
+            currentYear = selectedDate.getFullYear();
+            currentMonth = selectedDate.getMonth();
+            generateCalendar(currentYear, currentMonth);
+        }
+
+        function jumpToToday() {
+            currentYear = new Date().getFullYear();
+            currentMonth = new Date().getMonth();
+            generateCalendar(currentYear, currentMonth);
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             generateCalendar(currentYear, currentMonth);
         });
