@@ -28,8 +28,8 @@ urlpatterns = [
     path('register_auditorium/', views.register_auditorium, name='register_auditorium'),
     path('user/', views.user_index, name='user_index'),
     path('host/', views.event_host_index, name='event_host_index'),
+
     path('event_features/<int:auditorium_id>/', views.event_features, name='event_features'),
-    path('user_requests/', views.user_requests, name='user_requests'),
     path('user_bookings/', views.user_bookings, name='user_bookings'),
     path('host_schedules/<int:auditorium_id>/', views.event_schedules, name='event_schedules'),
     path('manage-booking/<int:auditorium_id>/', views.manage_booking, name='manage_booking'),
@@ -37,6 +37,10 @@ urlpatterns = [
     path('user_slot', views.user_event_schedules, name='user_event_schedules'),
     path('book_calendar/<int:auditorium_id>/', views.book_calendar, name='book_calendar'),
     path('auditorium/<int:auditorium_id>/details/', views.auditorium_details, name='auditorium_details'),
+    path('user_requests/', views.user_requests, name='user_requests'),
+    
+    path('approve_request/<int:request_id>/', views.approve_request, name='approve_request'),
+    path('reject_request/<int:request_id>/', views.reject_request, name='reject_request'),
     path('create-checkout-session/<int:auditorium_id>/', views.create_checkout_session, name='create_checkout_session'),
     path('success/', views.success_view, name='success'),
     path('cancel/', views.cancel_view, name='cancel'),

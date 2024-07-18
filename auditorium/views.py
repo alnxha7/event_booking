@@ -6,13 +6,13 @@ from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from .models import User, Auditorium, Feature, AuditoriumImage, Booking
+from .models import User, Auditorium, Feature, AuditoriumImage, Booking, UserRequest
 import stripe
 import json
 from django.forms import inlineformset_factory
-from django.utils.dateparse import parse_date
+from django.http import HttpResponseForbidden, HttpResponse
 from django.views.decorators.http import require_POST
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 
 User = get_user_model()
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -92,10 +92,6 @@ def register_auditorium(request):
             messages.error(request, 'Passwords do not match.')
 
     return render(request, 'register_auditorium.html')
-
-@login_required
-def user_requests(request):
-    return render(request, 'user_requests.html')
 
 @login_required
 def event_host_index(request):
@@ -255,15 +251,77 @@ def book_calendar(request, auditorium_id):
     booked_dates_json = json.dumps(booked_dates)
     return render(request, 'book_calendar.html', {'auditorium': auditorium, 'booked_dates_json': booked_dates_json})
 
+@login_required
 def auditorium_details(request, auditorium_id):
     auditorium = get_object_or_404(Auditorium, id=auditorium_id)
-    date = request.GET.get('date')
     features = auditorium.auditorium_features.all()
-    return render(request, 'auditorium_details.html', {
+    date = request.GET.get('date')  # Fetch the date from URL query parameters
+
+    if request.method == 'POST':
+        date = request.POST.get('date')  # Ensure you are capturing the date correctly
+        final_price = request.POST.get('final_price')
+        selected_features = request.POST.getlist('features')
+
+        if not date:
+            messages.error(request, 'Date is required.')
+            return redirect('auditorium_details', auditorium_id=auditorium_id)
+
+        booking_request = UserRequest(
+            user=request.user,
+            auditorium=auditorium,
+            date=date,  # Assign fetched date to the UserRequest instance
+            final_price=final_price
+        )
+        booking_request.save()
+
+        for feature_id in selected_features:
+            feature = Feature.objects.get(id=feature_id)
+            booking_request.features.add(feature)
+
+        booking_request.save()
+
+        messages.success(request, 'Auditorium booking requested successfully!')
+        return redirect('user_index')
+
+    context = {
         'auditorium': auditorium,
-        'date': date,
-        'features': features
-    })
+        'features': features,
+        'date': date  # Provide date to the template context
+    }
+    return render(request, 'auditorium_details.html', context)
+
+@login_required
+def user_requests(request):
+    requests = UserRequest.objects.filter(auditorium__user=request.user)
+    context = {
+        'requests': requests
+    }
+    return render(request, 'user_requests.html', context)
+
+@login_required
+def approve_request(request, request_id):
+    user_request = get_object_or_404(UserRequest, id=request_id)
+
+    # Check if the user is the owner of the auditorium
+    if request.user != user_request.auditorium.user:
+        return HttpResponseForbidden("You do not have permission to approve this request.")
+
+    user_request.approved = True
+    user_request.save()
+
+    return redirect('user_requests')
+
+@login_required
+def reject_request(request, request_id):
+    user_request = get_object_or_404(UserRequest, id=request_id)
+
+    # Check if the user is the owner of the auditorium
+    if request.user != user_request.auditorium.user:
+        return HttpResponseForbidden("You do not have permission to reject this request.")
+
+    user_request.delete()
+
+    return redirect('user_requests')
 
 @csrf_exempt
 def create_checkout_session(request, auditorium_id):

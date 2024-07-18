@@ -3,9 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>User Requests</title>
+    <style>
+        /* Your styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        .container {
+            width: 80%;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .actions form {
+            display: inline-block;
+        }
+        .approve-btn, .reject-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .approve-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .reject-btn {
+            background-color: #f44336;
+            color: white;
+        }
+        .approve-btn:hover {
+            background-color: #45a049;
+        }
+        .reject-btn:hover {
+            background-color: #d32f2f;
+        }
+    </style>
 </head>
 <body>
-    <h1>helooo alanshaaaa</h1>
+    <div class="container">
+        <h1>User Requests</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Date</th>
+                    <th>Features</th>
+                    <th>Final Price</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for request in requests %}
+                <tr>
+                    <td>{{ request.user.username }}</td>
+                    <td>{{ request.date }}</td>
+                    <td>
+                        <ul>
+                            {% for feature in request.features.all %}
+                            <li>{{ feature.name }}</li>
+                            {% empty %}
+                            <li>No features selected</li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                    <td>Rs {{ request.final_price }}</td>
+                    <td>{% if request.approved %}Approved{% else %}Pending{% endif %}</td>
+                    <td class="actions">
+                        {% if not request.approved %}
+                        <form method="post" action="{% url 'approve_request' request.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="approve-btn">Approve</button>
+                        </form>
+                        <form method="post" action="{% url 'reject_request' request.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="reject-btn">Reject</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </body>
 </html>

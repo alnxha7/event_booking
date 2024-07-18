@@ -69,3 +69,11 @@ class Booking(models.Model):
         return f'{self.auditorium} booked by {self.user} on {self.date}'
 
     
+class UserRequest(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    auditorium = models.ForeignKey(Auditorium, on_delete=models.CASCADE)
+    date = models.DateField()
+    features = models.ManyToManyField(Feature)
+    final_price = models.DecimalField(max_digits=10, decimal_places=2)
+    approved = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)

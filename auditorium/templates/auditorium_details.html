@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Auditorium Details</title>
     <style>
+        /* Your styles */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -82,7 +83,7 @@
 <body>
     <div class="container">
         <h1>{{ auditorium.user.username }}</h1>
-        <p>Date: {{ date }}</p>
+        <p>Date: <span id="selected-date">{{ date }}</span></p>
         <p>Price: Rs <span id="base-price">{{ auditorium.price }}</span></p>
         <p>Location: {{ auditorium.location }}</p>
         <p>Capacity: {{ auditorium.capacity }}</p>
@@ -91,7 +92,7 @@
         <div id="features">
             {% for feature in features %}
             <div class="feature-checkbox">
-                <input type="checkbox" id="feature-{{ feature.id }}" data-amount="{{ feature.amount }}">
+                <input type="checkbox" id="feature-{{ feature.id }}" data-amount="{{ feature.amount }}" name="features" value="{{ feature.id }}">
                 <label for="feature-{{ feature.id }}">{{ feature.name }} (+ Rs {{ feature.amount }})</label>
             </div>
             {% endfor %}
@@ -101,17 +102,37 @@
             Grand Total: Rs <span id="final-price">{{ auditorium.price }}</span>
         </div>
 
-        <div class="btn-container">
-            <a class="back-btn" href="{% url 'user_index' %}">Cancel</a>
-            <a class="request-btn" href="#">Request Auditorium</a>
-        </div>
+        <form method="POST" action="{% url 'auditorium_details' auditorium.id %}">
+            {% csrf_token %}
+            <div class="btn-container">
+                <a class="back-btn" href="{% url 'user_index' %}">Cancel</a>
+                <!-- Use a hidden input field to store the selected date -->
+                <input type="hidden" id="date-input" name="date" value="{{ date }}">
+                <input type="hidden" name="final_price" id="final_price_input" value="{{ auditorium.price }}">
+                <button type="submit" class="request-btn">Request Auditorium</button>
+            </div>
+        </form>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var basePrice = parseFloat(document.getElementById('base-price').textContent);
             var finalPriceElement = document.getElementById('final-price');
+            var finalPriceInput = document.getElementById('final_price_input');
+            var selectedDateElement = document.getElementById('selected-date');
+            var dateInput = document.getElementById('date-input');
 
+            // Example: If you have a date picker library, update the hidden input on date change
+            // Replace this with your actual date picker change event handling logic
+            var datePicker = document.getElementById('your-date-picker-id');  // Replace with actual ID
+
+            datePicker.addEventListener('change', function() {
+                var selectedDate = datePicker.value;
+                selectedDateElement.textContent = selectedDate;  // Update visible date display
+                dateInput.value = selectedDate;  // Update hidden input value for form submission
+            });
+
+            // Calculate final price based on selected features
             document.querySelectorAll('.feature-checkbox input').forEach(function(checkbox) {
                 checkbox.addEventListener('change', function() {
                     var finalPrice = basePrice;
@@ -119,6 +140,7 @@
                         finalPrice += parseFloat(checkedBox.getAttribute('data-amount'));
                     });
                     finalPriceElement.textContent = finalPrice.toFixed(2);
+                    finalPriceInput.value = finalPrice.toFixed(2);
                 });
             });
         });
