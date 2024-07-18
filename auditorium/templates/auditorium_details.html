@@ -122,23 +122,20 @@
             var selectedDateElement = document.getElementById('selected-date');
             var dateInput = document.getElementById('date-input');
 
-            // Example: If you have a date picker library, update the hidden input on date change
-            // Replace this with your actual date picker change event handling logic
-            var datePicker = document.getElementById('your-date-picker-id');  // Replace with actual ID
+            console.log('Base Price:', basePrice); // Debugging statement
 
-            datePicker.addEventListener('change', function() {
-                var selectedDate = datePicker.value;
-                selectedDateElement.textContent = selectedDate;  // Update visible date display
-                dateInput.value = selectedDate;  // Update hidden input value for form submission
-            });
-
-            // Calculate final price based on selected features
             document.querySelectorAll('.feature-checkbox input').forEach(function(checkbox) {
                 checkbox.addEventListener('change', function() {
                     var finalPrice = basePrice;
+                    console.log('Initial Final Price:', finalPrice); // Debugging statement
+
                     document.querySelectorAll('.feature-checkbox input:checked').forEach(function(checkedBox) {
-                        finalPrice += parseFloat(checkedBox.getAttribute('data-amount'));
+                        var featureAmount = parseFloat(checkedBox.getAttribute('data-amount'));
+                        console.log('Adding Feature Amount:', featureAmount); // Debugging statement
+                        finalPrice += featureAmount;
                     });
+
+                    console.log('Updated Final Price:', finalPrice); // Debugging statement
                     finalPriceElement.textContent = finalPrice.toFixed(2);
                     finalPriceInput.value = finalPrice.toFixed(2);
                 });

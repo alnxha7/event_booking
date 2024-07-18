@@ -269,7 +269,7 @@ def auditorium_details(request, auditorium_id):
         booking_request = UserRequest(
             user=request.user,
             auditorium=auditorium,
-            date=date,  # Assign fetched date to the UserRequest instance
+            date=date,
             final_price=final_price
         )
         booking_request.save()
@@ -286,7 +286,7 @@ def auditorium_details(request, auditorium_id):
     context = {
         'auditorium': auditorium,
         'features': features,
-        'date': date  # Provide date to the template context
+        'date': date
     }
     return render(request, 'auditorium_details.html', context)
 
