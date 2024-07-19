@@ -307,7 +307,20 @@ def approve_request(request, request_id):
         return HttpResponseForbidden("You do not have permission to approve this request.")
 
     user_request.approved = True
+    user_request.payment_requested = True
+
+    # Create a payment intent
+    payment_intent = stripe.PaymentIntent.create(
+        amount=int(user_request.final_price * 100),  # Amount in cents
+        currency='inr',
+        metadata={'user_request_id': user_request.id}
+    )
+
+    # Save payment intent id
+    user_request.stripe_payment_intent_id = payment_intent['id']
     user_request.save()
+
+    # Optionally, send an email to the user with the payment link
 
     return redirect('user_requests')
 
@@ -322,6 +335,14 @@ def reject_request(request, request_id):
     user_request.delete()
 
     return redirect('user_requests')
+
+@login_required
+def user_messages(request):
+    payment_requests = UserRequest.objects.filter(user=request.user, approved=True, payment_requested=True)
+    context = {
+        'payment_requests': payment_requests
+    }
+    return render(request, 'user_messages.html', context)
 
 @csrf_exempt
 def create_checkout_session(request, auditorium_id):
