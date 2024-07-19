@@ -306,21 +306,19 @@ def approve_request(request, request_id):
     if request.user != user_request.auditorium.user:
         return HttpResponseForbidden("You do not have permission to approve this request.")
 
-    user_request.approved = True
-    user_request.payment_requested = True
-
-    # Create a payment intent
+    # Create a Stripe Payment Intent
+    stripe.api_key = 'sk_test_51PYPLEEowOqVQOI5EO3xfdxlXeZumfYIelTtbrWLCdCsipg9l3E2BmQafQ5hstCRoogt9qXI8CJPGIgRswhNDnVd00alIj4ZC2'
     payment_intent = stripe.PaymentIntent.create(
         amount=int(user_request.final_price * 100),  # Amount in cents
         currency='inr',
-        metadata={'user_request_id': user_request.id}
+        metadata={'integration_check': 'accept_a_payment'},
     )
 
-    # Save payment intent id
+    # Save the payment intent ID to the request
+    user_request.approved = True
     user_request.stripe_payment_intent_id = payment_intent['id']
+    user_request.payment_requested = True
     user_request.save()
-
-    # Optionally, send an email to the user with the payment link
 
     return redirect('user_requests')
 

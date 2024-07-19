@@ -57,8 +57,12 @@
 <body>
     <h1>Book Slot for {{ auditorium.user.username }}</h1>
 
-    <button onclick="jumpToDate()">Enter</button>
-    <button onclick="jumpToToday()">Today</button>
+    <div class="date-picker-container">
+        <label for="datePicker">Choose Your Date: </label>
+        <input type="date" id="datePicker" min="">
+        <button class='back-btn' onclick="jumpToDate()">Enter</button>
+        <button class='back-btn' onclick="jumpToToday()">Today</button>
+    </div>
 
     <div class="calendar-container">
         <div id="calendar-{{ auditorium.id }}"></div>
@@ -153,10 +157,6 @@
             currentMonth = new Date().getMonth();
             generateCalendar(currentYear, currentMonth);
         }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            generateCalendar(currentYear, currentMonth);
-        });
     </script>
 </body>
 </html>
