@@ -306,19 +306,34 @@ def approve_request(request, request_id):
     if request.user != user_request.auditorium.user:
         return HttpResponseForbidden("You do not have permission to approve this request.")
 
-    # Create a Stripe Payment Intent
     stripe.api_key = 'sk_test_51PYPLEEowOqVQOI5EO3xfdxlXeZumfYIelTtbrWLCdCsipg9l3E2BmQafQ5hstCRoogt9qXI8CJPGIgRswhNDnVd00alIj4ZC2'
-    payment_intent = stripe.PaymentIntent.create(
-        amount=int(user_request.final_price * 100),  # Amount in cents
-        currency='inr',
-        metadata={'integration_check': 'accept_a_payment'},
-    )
+    success_url = f"{request.scheme}://{request.get_host()}/success/"
+    cancel_url = f"{request.scheme}://{request.get_host()}/cancel/"
 
-    # Save the payment intent ID to the request
-    user_request.approved = True
-    user_request.stripe_payment_intent_id = payment_intent['id']
-    user_request.payment_requested = True
-    user_request.save()
+    try:
+        session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'inr',
+                    'product_data': {
+                        'name': user_request.auditorium.user.username,
+                    },
+                    'unit_amount': int(user_request.final_price * 100),
+                },
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url=success_url,
+            cancel_url=cancel_url,
+        )
+        user_request.stripe_payment_intent_id = session.id
+        user_request.approved = True
+        user_request.payment_requested = True
+        user_request.save()
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
 
     return redirect('user_requests')
 
@@ -383,3 +398,32 @@ def success_view(request):
 
 def cancel_view(request):
     return render(request, 'cancel.html')
+
+@csrf_exempt
+def stripe_webhook(request):
+    payload = request.body
+    sig_header = request.META['HTTP_STRIPE_SIGNATURE']
+    endpoint_secret = 'whsec_...'
+    event = None
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, endpoint_secret
+        )
+    except ValueError as e:
+        # Invalid payload
+        return HttpResponse(status=400)
+    except stripe.error.SignatureVerificationError as e:
+        # Invalid signature
+        return HttpResponse(status=400)
+
+    # Handle the event
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        
+        # Fulfill the purchase...
+        user_request = UserRequest.objects.get(stripe_payment_intent_id=session['id'])
+        user_request.payment_requested = False
+        user_request.save()
+
+    return HttpResponse(status=200)

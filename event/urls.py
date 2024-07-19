@@ -39,10 +39,11 @@ urlpatterns = [
     path('auditorium/<int:auditorium_id>/details/', views.auditorium_details, name='auditorium_details'),
     path('user_requests/', views.user_requests, name='user_requests'),
     
-    path('requests/', views.user_requests, name='user_requests'),
-    path('requests/approve/<int:request_id>/', views.approve_request, name='approve_request'),
-    path('requests/reject/<int:request_id>/', views.reject_request, name='reject_request'),
     path('messages/', views.user_messages, name='user_messages'),
+    path('approve_request/<int:request_id>/', views.approve_request, name='approve_request'),
+    path('reject_request/<int:request_id>/', views.reject_request, name='reject_request'),
+    path('create_checkout_session/<int:auditorium_id>/', views.create_checkout_session, name='create_checkout_session'),
+    path('webhook/', views.stripe_webhook, name='stripe_webhook'),
 
     path('create-checkout-session/<int:auditorium_id>/', views.create_checkout_session, name='create_checkout_session'),
     path('success/', views.success_view, name='success'),

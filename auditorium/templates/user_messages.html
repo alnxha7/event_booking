@@ -52,6 +52,7 @@
             background-color: #45a049;
         }
     </style>
+    <script src="https://js.stripe.com/v3/"></script>
 </head>
 <body>
     <div class="container">
@@ -73,7 +74,7 @@
                     <td>{{ request.date }}</td>
                     <td>Rs {{ request.final_price }}</td>
                     <td>
-                        <a href="https://checkout.stripe.com/pay/{{ request.stripe_payment_intent_id }}" class="pay-btn">Pay Now</a>
+                        <button class="pay-btn" onclick="checkout('{{ request.stripe_payment_intent_id }}')">Pay Now</button>
                     </td>
                 </tr>
                 {% endfor %}
@@ -83,5 +84,16 @@
         <p>No payment requests available.</p>
         {% endif %}
     </div>
+
+    <script>
+        function checkout(sessionId) {
+            const stripe = Stripe('pk_test_51PYPLEEowOqVQOI54dUnOGDc6SmTpV9PCpG0Q0W89o6FgyogO3SGmB5idiNPU9MZq30cgZ8YPdlWT51534NfP4Z400nV18eygD');
+            stripe.redirectToCheckout({ sessionId: sessionId }).then(function (result) {
+                if (result.error) {
+                    alert(result.error.message);
+                }
+            });
+        }
+    </script>
 </body>
 </html>
