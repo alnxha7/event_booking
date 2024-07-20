@@ -63,6 +63,7 @@
                 <tr>
                     <th>Auditorium</th>
                     <th>Date</th>
+                    <th>Features</th>
                     <th>Amount</th>
                     <th>Actions</th>
                 </tr>
@@ -72,6 +73,15 @@
                 <tr>
                     <td>{{ request.auditorium.user.username }}</td>
                     <td>{{ request.date }}</td>
+                    <td>
+                        <ul>
+                        {% for feature in request.features.all %}
+                        <li>{{ feature.name }}</li>
+                        {% empty %}
+                        <li>No features selected</li>
+                        {% endfor %}
+                        </ul>
+                    </td>
                     <td>Rs {{ request.final_price }}</td>
                     <td>
                         <button class="pay-btn" onclick="checkout('{{ request.stripe_payment_intent_id }}')">Pay Now</button>
