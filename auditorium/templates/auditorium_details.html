@@ -88,23 +88,18 @@
         <p>Location: {{ auditorium.location }}</p>
         <p>Capacity: {{ auditorium.capacity }}</p>
 
-        <h2>Features</h2>
-        <div id="features">
-            {% for feature in features %}
-            <div class="feature-checkbox">
-                <input type="checkbox" id="feature-{{ feature.id }}" data-amount="{{ feature.amount }}" name="features" value="{{ feature.id }}">
-                <label for="feature-{{ feature.id }}">{{ feature.name }} (+ Rs {{ feature.amount }})</label>
-            </div>
-            {% endfor %}
-        </div>
-
-        <div class="final-price">
-            Grand Total: Rs <span id="final-price">{{ auditorium.price }}</span>
-        </div>
-
         <form method="POST" action="{% url 'auditorium_details' auditorium.id %}">
             {% csrf_token %}
             <div class="btn-container">
+                <h2>Features</h2>
+                <div id="features">
+                    {% for feature in features %}
+                    <div class="feature-checkbox" >
+                        <input type="checkbox" id="feature-{{ feature.id }}" data-amount="{{ feature.amount }}" name="features" value="{{ feature.id }}">
+                        <label for="feature-{{ feature.id }}">{{ feature.name }} (+ Rs {{ feature.amount }})</label>
+                    </div>
+                    {% endfor %}
+                </div>
                 <a class="back-btn" href="{% url 'user_index' %}">Cancel</a>
                 <!-- Use a hidden input field to store the selected date -->
                 <input type="hidden" id="date-input" name="date" value="{{ date }}">
@@ -112,6 +107,9 @@
                 <button type="submit" class="request-btn">Request Auditorium</button>
             </div>
         </form>
+        <div class="final-price">
+            Grand Total: Rs <span id="final-price">{{ auditorium.price }}</span>
+        </div>
     </div>
 
     <script>

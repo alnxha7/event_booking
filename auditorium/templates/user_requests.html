@@ -72,7 +72,7 @@
                 <tr>
                     <th>User</th>
                     <th>Date</th>
-                    <!-- <th>Features</th> -->
+                    <th>Features</th>
                     <th>Final Price</th>
                     <th>Status</th>
                     <th>Actions</th>
@@ -83,7 +83,7 @@
                 <tr>
                     <td>{{ request.user.username }}</td>
                     <td>{{ request.date }}</td>
-                    <!-- <td>
+                    <td>
                         <ul>
                             {% for feature in request.features.all %}
                             <li>{{ feature.name }}</li>
@@ -91,7 +91,7 @@
                             <li>No features selected</li>
                             {% endfor %}
                         </ul>
-                    </td> -->
+                    </td>
                     <td>Rs {{ request.final_price }}</td>
                     <td>{% if request.approved %}Approved{% else %}Pending{% endif %}</td>
                     <td class="actions">
