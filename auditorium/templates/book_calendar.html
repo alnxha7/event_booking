@@ -4,21 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Book Auditorium Slot</title>
-    <!-- Include your CSS stylesheets here -->
     <style>
-        /* CSS for calendar */
         .calendar {
             font-family: Arial, sans-serif;
             border-collapse: collapse;
-            width: 70%; /* Increased width to full */
+            width: 70%;
             margin: 20px auto;
-            font-size: 24px; /* Increased font size */
+            font-size: 24px;
         }
         .calendar th, .calendar td {
             border: 1px solid #dddddd;
             text-align: center;
-            padding: 30px; /* Increased padding */
-            height: 50px; /* Increased height */
+            padding: 30px;
+            height: 50px;
             cursor: pointer;
         }
         .calendar th {
@@ -60,30 +58,29 @@
     <div class="date-picker-container">
         <label for="datePicker">Choose Your Date: </label>
         <input type="date" id="datePicker" min="">
-        <button class='back-btn' onclick="jumpToDate()">Enter</button>
-        <button class='back-btn' onclick="jumpToToday()">Today</button>
+        <button class="back-btn" onclick="jumpToDate()">Enter</button>
+        <button class="back-btn" onclick="jumpToToday()">Today</button>
     </div>
 
     <div class="calendar-container">
         <div id="calendar-{{ auditorium.id }}"></div>
-        <a class='back-btn' href="{% url 'user_index' %}">Go Back</a>
+        <a class="back-btn" href="{% url 'user_index' %}">Go Back</a>
     </div>
 
-    <!-- Include your JavaScript files here -->
     <script>
         var bookedDates = JSON.parse('{{ booked_dates_json|escapejs }}');
         var currentYear = new Date().getFullYear();
         var currentMonth = new Date().getMonth();
-    
+
         function generateCalendar(year, month) {
             var firstDay = new Date(year, month).getDay();
             var lastDate = new Date(year, month + 1, 0).getDate();
             var calendarBody = document.querySelector('#calendar-{{ auditorium.id }}');
             calendarBody.innerHTML = '';
-    
+
             var table = document.createElement('table');
             table.classList.add('calendar');
-    
+
             var thead = document.createElement('thead');
             var headerRow = document.createElement('tr');
             var days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -94,12 +91,12 @@
             });
             thead.appendChild(headerRow);
             table.appendChild(thead);
-    
+
             var tbody = document.createElement('tbody');
             var date = 1;
             for (var i = 0; i < 6; i++) {
                 var row = document.createElement('tr');
-    
+
                 for (var j = 0; j < 7; j++) {
                     var cell = document.createElement('td');
                     if (i === 0 && j < firstDay) {
@@ -111,7 +108,7 @@
                     } else {
                         var cellText = document.createTextNode(date);
                         cell.appendChild(cellText);
-    
+
                         var dateString = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(date).padStart(2, '0');
                         if (bookedDates[dateString]) {
                             cell.classList.add('booked');
@@ -129,7 +126,7 @@
                         if (new Date().toDateString() === new Date(year, month, date).toDateString()) {
                             cell.classList.add('today');
                         }
-    
+
                         row.appendChild(cell);
                         date++;
                     }
@@ -139,10 +136,6 @@
             table.appendChild(tbody);
             calendarBody.appendChild(table);
         }
-    
-        document.addEventListener('DOMContentLoaded', function() {
-            generateCalendar(currentYear, currentMonth);
-        });
 
         function jumpToDate() {
             var datePicker = document.getElementById('datePicker');
@@ -157,6 +150,10 @@
             currentMonth = new Date().getMonth();
             generateCalendar(currentYear, currentMonth);
         }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            generateCalendar(currentYear, currentMonth);
+        });
     </script>
 </body>
 </html>

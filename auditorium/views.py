@@ -9,6 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .models import User, Auditorium, Feature, AuditoriumImage, Booking, UserRequest, BookingHistory
 import stripe
 import json
+from django.utils import timezone
 from django.forms import inlineformset_factory
 from django.http import HttpResponseForbidden, HttpResponse
 from django.views.decorators.http import require_POST
@@ -400,16 +401,24 @@ def process_payment(request, request_id):
                 cvv=cvv
             )
 
+            # Create a new Booking entry
+            Booking.objects.create(
+                auditorium=user_request.auditorium,
+                user=user_request.user,
+                date=user_request.date,
+                booked_at=timezone.now()  # Set to current timestamp
+            )
+
             # Optionally, delete the original user request entry if needed
             user_request.delete()
 
             return redirect('success')  # Replace 'success' with your success page name
+
         except UserRequest.DoesNotExist:
             messages.error(request, "User Request not found.")
             return redirect('user_messages')
 
     return redirect('user_messages')
-
 @login_required
 def cancel_payment(request, request_id):
     user_request = get_object_or_404(UserRequest, id=request_id)
