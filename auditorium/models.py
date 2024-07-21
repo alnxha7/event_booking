@@ -79,3 +79,14 @@ class UserRequest(models.Model):
     payment_requested = models.BooleanField(default=False)
     stripe_payment_intent_id = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+class BookingHistory(models.Model):
+    auditorium = models.ForeignKey(Auditorium, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    date_booked = models.DateField()
+    date_of_booking = models.DateTimeField(auto_now_add=True)
+    card_number = models.CharField(max_length=16)
+    cvv = models.CharField(max_length=4)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.auditorium.user.username} - {self.date_booked}"

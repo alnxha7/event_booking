@@ -39,20 +39,27 @@
         th {
             background-color: #f2f2f2;
         }
-        .pay-btn {
+        .pay-btn, .cancel-btn {
             padding: 10px 20px;
-            background-color: #4CAF50;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             text-decoration: none;
         }
+        .pay-btn {
+            background-color: #4CAF50;
+        }
         .pay-btn:hover {
             background-color: #45a049;
         }
+        .cancel-btn {
+            background-color: #f44336;
+        }
+        .cancel-btn:hover {
+            background-color: #e53935;
+        }
     </style>
-    <script src="https://js.stripe.com/v3/"></script>
 </head>
 <body>
     <div class="container">
@@ -84,7 +91,8 @@
                     </td>
                     <td>Rs {{ request.final_price }}</td>
                     <td>
-                        <button class="pay-btn" onclick="checkout('{{ request.stripe_payment_intent_id }}')">Pay Now</button>
+                        <a href="{% url 'payment_form' request.id %}" class='pay-btn'>Pay Now</a>
+                        <a href="{% url 'cancel_payment' request.id %}" class="cancel-btn">Cancel</a>
                     </td>
                 </tr>
                 {% endfor %}
@@ -94,16 +102,5 @@
         <p>No payment requests available.</p>
         {% endif %}
     </div>
-
-    <script>
-        function checkout(sessionId) {
-            const stripe = Stripe('pk_test_51PYPLEEowOqVQOI54dUnOGDc6SmTpV9PCpG0Q0W89o6FgyogO3SGmB5idiNPU9MZq30cgZ8YPdlWT51534NfP4Z400nV18eygD');
-            stripe.redirectToCheckout({ sessionId: sessionId }).then(function (result) {
-                if (result.error) {
-                    alert(result.error.message);
-                }
-            });
-        }
-    </script>
 </body>
 </html>

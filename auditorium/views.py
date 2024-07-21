@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from .models import User, Auditorium, Feature, AuditoriumImage, Booking, UserRequest
+from .models import User, Auditorium, Feature, AuditoriumImage, Booking, UserRequest, BookingHistory
 import stripe
 import json
 from django.forms import inlineformset_factory
@@ -357,73 +357,65 @@ def user_messages(request):
     }
     return render(request, 'user_messages.html', context)
 
+@login_required
+def payment_form(request, request_id):
+    print(f"Request ID: {request_id}")  # Debugging message
+    try:
+        user_request = UserRequest.objects.get(id=request_id)
+        print(f"User Request found: {user_request}")  # Debugging message
+    except UserRequest.DoesNotExist:
+        print("User Request not found.")  # Debugging message
+        messages.error(request, "User Request not found.")
+        return redirect('user_messages')
+    
+    return render(request, 'payment_form.html', {'user_request': user_request})
+
+@login_required
 @csrf_exempt
-def create_checkout_session(request, auditorium_id):
-    auditorium = Auditorium.objects.get(pk=auditorium_id)
-    success_url = f"{request.scheme}://{request.get_host()}/success/"
-    cancel_url = f"{request.scheme}://{request.get_host()}/cancel/"
+def process_payment(request, request_id):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        card_number = request.POST.get('card_number')
+        cvv = request.POST.get('cvv')
 
-    try:
-        session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
-            line_items=[{
-                'price_data': {
-                    'currency': 'inr',
-                    'product_data': {
-                        'name': auditorium.user.username,
-                    },
-                    'unit_amount': int(auditorium.price * 100),
-                },
-                'quantity': 1,
-            }],
-            mode='payment',
-            success_url=success_url,
-            cancel_url=cancel_url,
-        )
-        return JsonResponse({'sessionId': session.id})
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
+        # Validate card number and CVV
+        if len(card_number) != 16 or not card_number.isdigit():
+            messages.error(request, "Card number must be exactly 16 digits.")
+            return redirect('payment_form', request_id=request_id)
 
-def capture_payment(request, session_id):
-    try:
-        session = stripe.checkout.Session.retrieve(session_id)
-        payment_intent = session.payment_intent
-        stripe.PaymentIntent.capture(payment_intent)
-        return JsonResponse({'status': 'success'})
-    except stripe.error.StripeError as e:
-        return JsonResponse({'error': str(e)})
+        if len(cvv) != 3 or not cvv.isdigit():
+            messages.error(request, "CVV must be exactly 3 digits.")
+            return redirect('payment_form', request_id=request_id)
 
-def success_view(request):
+        try:
+            # Retrieve the user request record
+            user_request = UserRequest.objects.get(id=request_id)
+
+            # Create a new entry in BookingHistory
+            BookingHistory.objects.create(
+                auditorium=user_request.auditorium,
+                user=user_request.user,
+                date_booked=user_request.date,
+                card_number=card_number,
+                cvv=cvv
+            )
+
+            # Optionally, delete the original user request entry if needed
+            user_request.delete()
+
+            return redirect('success')  # Replace 'success' with your success page name
+        except UserRequest.DoesNotExist:
+            messages.error(request, "User Request not found.")
+            return redirect('user_messages')
+
+    return redirect('user_messages')
+
+@login_required
+def cancel_payment(request, request_id):
+    user_request = get_object_or_404(UserRequest, id=request_id)
+    user_request.delete()
+    messages.success(request, 'Payment request cancelled successfully.')
+    return redirect('user_messages')
+
+def success_page(request):
     return render(request, 'success.html')
-
-def cancel_view(request):
-    return render(request, 'cancel.html')
-
-@csrf_exempt
-def stripe_webhook(request):
-    payload = request.body
-    sig_header = request.META['HTTP_STRIPE_SIGNATURE']
-    endpoint_secret = 'whsec_...'
-    event = None
-
-    try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, endpoint_secret
-        )
-    except ValueError as e:
-        # Invalid payload
-        return HttpResponse(status=400)
-    except stripe.error.SignatureVerificationError as e:
-        # Invalid signature
-        return HttpResponse(status=400)
-
-    # Handle the event
-    if event['type'] == 'checkout.session.completed':
-        session = event['data']['object']
-        
-        # Fulfill the purchase...
-        user_request = UserRequest.objects.get(stripe_payment_intent_id=session['id'])
-        user_request.payment_requested = False
-        user_request.save()
-
-    return HttpResponse(status=200)

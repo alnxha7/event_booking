@@ -42,11 +42,10 @@ urlpatterns = [
     path('messages/', views.user_messages, name='user_messages'),
     path('approve_request/<int:request_id>/', views.approve_request, name='approve_request'),
     path('reject_request/<int:request_id>/', views.reject_request, name='reject_request'),
-    path('create_checkout_session/<int:auditorium_id>/', views.create_checkout_session, name='create_checkout_session'),
-    path('webhook/', views.stripe_webhook, name='stripe_webhook'),
 
-    path('create-checkout-session/<int:auditorium_id>/', views.create_checkout_session, name='create_checkout_session'),
-    path('success/', views.success_view, name='success'),
-    path('cancel/', views.cancel_view, name='cancel'),
-    path('capture-payment/<str:charge_id>/', views.capture_payment, name='capture_payment'),
+    path('user/messages/', views.user_messages, name='user_messages'),
+    path('payment_form/<int:request_id>/', views.payment_form, name='payment_form'),
+    path('process_payment/<int:request_id>/', views.process_payment, name='process_payment'),
+    path('cancel_payment/<int:request_id>/', views.cancel_payment, name='cancel_payment'),
+    path('success/', views.success_page, name='success'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

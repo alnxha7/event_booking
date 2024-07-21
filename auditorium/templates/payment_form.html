@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Form</title>
+    <style>
+        /* Styling for form */
+        .container {
+            width: 60%;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .submit-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 10px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .submit-btn:hover {
+            background-color: #45a049;
+        }
+    </style>
+    <script>
+        // JavaScript function to restrict input length and characters
+        function restrictInputLength(element, maxLength) {
+            if (element.value.length > maxLength) {
+                element.value = element.value.slice(0, maxLength);
+            }
+        }
+
+        function validateNumberInput(event, maxLength) {
+            const input = event.target;
+            input.value = input.value.replace(/\D/g, ''); // Remove non-digits
+            restrictInputLength(input, maxLength);
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Payment Form</h1>
+        <form method="post" action="{% url 'process_payment' user_request.id %}">
+            {% csrf_token %}
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required>
+
+            <label for="card_number">Card Number:</label>
+            <input type="text" id="card_number" name="card_number" maxlength="16" required 
+                   oninput="validateNumberInput(event, 16)" placeholder="Enter 16-digit card number">
+
+            <label for="cvv">CVV:</label>
+            <input type="password" id="cvv" name="cvv" maxlength="3" required 
+                   oninput="validateNumberInput(event, 3)" placeholder="Enter 3-digit CVV">
+
+            <button type="submit" class="submit-btn">Pay Now</button>
+        </form>
+    </div>
+</body>
+</html>
