@@ -1,3 +1,4 @@
+
 <!-- user_index.html -->
 <!DOCTYPE html>
 <html lang="en-US">
@@ -16,32 +17,69 @@
     <link rel="stylesheet" href="../static/css/style.css" media="screen"/>
     <style>
         .auditorium-container {
-            display: flex;
-            flex-wrap: wrap;
-        }
-        .auditorium-tile {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 300px; /* Adjust width as needed */
-            border: 1px solid #ccc;
-            margin: 10px;
-            padding: 10px;
-            text-align: center;
-        }
-        .auditorium-tile img {
-            width: 100%;
-            height: auto;
-        }
-        .auditorium-tile h3 {
-            margin: 10px 0;
-        }
-        .auditorium-tile p {
-            margin: 5px 0;
-        }
-        .auditorium-tile a, .auditorium-tile button {
-            margin-top: 10px;
-        }
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center; /* Center tiles horizontally */
+    margin-top: -250px; /* Adjust this value to move the container up */
+    padding: 20px;
+    position: relative;
+    z-index: 1; /* Ensure it's above other content */
+    background-color: #fff; /* White background for the container */
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+.auditorium-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 270px; /* Adjust width as needed */
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    margin: 10px;
+    padding: 10px;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    background-color: #fff; /* White background for the tiles */
+}
+.auditorium-tile:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+.auditorium-tile img {
+    width: 100%;
+    height: 60%;
+    border-bottom: 1px solid #ddd;
+    border-radius: 5px 5px 0 0;
+}
+.auditorium-tile h3 {
+    margin: 10px 0;
+    font-size: 1.2em;
+    color: #333;
+}
+.auditorium-tile p {
+    margin: 5px 0;
+    color: #555;
+}
+.auditorium-tile a, .auditorium-tile button {
+    margin-top: 10px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 15px;
+    text-decoration: none;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+.auditorium-tile a:hover, .auditorium-tile button:hover {
+    background-color: #0056b3;
+    transform: scale(1.05);
+}
+.auditorium-tile:hover {
+    background-color: rgb(174, 255, 204);
+}
         .calendar {
             font-family: Arial, sans-serif;
             border-collapse: collapse;
@@ -139,11 +177,6 @@
                 <section class="center">
                     <div class="slogan">BOOK Your EVENT SPOT</div>
                     <div class="secondary-slogan">Book your event slots for your favorite auditorium</div>
-                </section>
-                <section class="bottom">
-                    <a id="scrollToContent" href="#">
-                        <img src="../static/images/arrow_down.png">
-                    </a>
                 </section>
             </div>
         </div>

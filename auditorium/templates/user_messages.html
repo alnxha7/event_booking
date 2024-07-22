@@ -59,6 +59,20 @@
         .cancel-btn:hover {
             background-color: #e53935;
         }
+        .back-btn {
+            display: inline-block;
+            background: #828282;
+            color: #333;
+            padding: 10px 20px;
+            text-decoration: none;
+            border: 1px solid #333;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .back-btn:hover {
+            background: #ddd;
+        }
     </style>
 </head>
 <body>
@@ -101,6 +115,7 @@
         {% else %}
         <p>No payment requests available.</p>
         {% endif %}
+        <a class='back-btn' href="{% url 'user_index' %}">Back</a>
     </div>
 </body>
 </html>
