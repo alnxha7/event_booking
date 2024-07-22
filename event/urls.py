@@ -48,4 +48,7 @@ urlpatterns = [
     path('process_payment/<int:request_id>/', views.process_payment, name='process_payment'),
     path('cancel_payment/<int:request_id>/', views.cancel_payment, name='cancel_payment'),
     path('success/', views.success_page, name='success'),
+
+    path('event_my_bookings/', views.event_my_bookings, name='event_my_bookings'),
+    path('user_my_bookings/', views.user_my_bookings, name='user_my_bookings'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

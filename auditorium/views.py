@@ -9,6 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .models import User, Auditorium, Feature, AuditoriumImage, Booking, UserRequest, BookingHistory
 import stripe
 import json
+import logging
 from django.utils import timezone
 from django.forms import inlineformset_factory
 from django.http import HttpResponseForbidden, HttpResponse
@@ -16,6 +17,7 @@ from django.views.decorators.http import require_POST
 from datetime import date, timedelta, datetime
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 def home(request):
@@ -188,23 +190,28 @@ def manage_booking(request, auditorium_id):
     book = data.get('book', False)
 
     if not booking_date or not isinstance(booking_date, str):
+        logger.error('Invalid date format or missing date')
         return JsonResponse({'status': 'error', 'message': 'Invalid date format'}, status=400)
 
     try:
         booking_date = date.fromisoformat(booking_date)
     except ValueError:
+        logger.error('Invalid date format')
         return JsonResponse({'status': 'error', 'message': 'Invalid date format'}, status=400)
 
     if booking_date < date.today():
+        logger.error('Cannot book past dates')
         return JsonResponse({'status': 'error', 'message': 'Cannot book past dates'}, status=400)
 
     booking, created = Booking.objects.get_or_create(auditorium=auditorium, user=request.user, date=booking_date)
 
     if not book:
         booking.delete()
+        logger.info(f'Booking for {booking_date} has been cancelled')
         return JsonResponse({'status': 'cancelled', 'message': f'Booking for {booking_date} has been cancelled'})
     else:
-        return JsonResponse({'status': 'booked', 'message': f'Booking for {booking_date} has been confirmed'})
+        logger.warning(f'Unauthorized booking attempt for {booking_date}')
+        return JsonResponse({'status': 'error', 'message': 'Unauthorized booking attempt'}, status=403)
     
 @login_required
 def user_index(request):
@@ -393,20 +400,22 @@ def process_payment(request, request_id):
             user_request = UserRequest.objects.get(id=request_id)
 
             # Create a new entry in BookingHistory
+            features_selected = ", ".join([feature.name for feature in user_request.features.all()])
             BookingHistory.objects.create(
                 auditorium=user_request.auditorium,
                 user=user_request.user,
                 date_booked=user_request.date,
+                features_selected=features_selected,
+                final_price=user_request.final_price,
                 card_number=card_number,
                 cvv=cvv
             )
 
-            # Create a new Booking entry
+            # Create a new entry in Booking
             Booking.objects.create(
                 auditorium=user_request.auditorium,
                 user=user_request.user,
-                date=user_request.date,
-                booked_at=timezone.now()  # Set to current timestamp
+                date=user_request.date
             )
 
             # Optionally, delete the original user request entry if needed
@@ -419,6 +428,7 @@ def process_payment(request, request_id):
             return redirect('user_messages')
 
     return redirect('user_messages')
+
 @login_required
 def cancel_payment(request, request_id):
     user_request = get_object_or_404(UserRequest, id=request_id)
@@ -428,3 +438,28 @@ def cancel_payment(request, request_id):
 
 def success_page(request):
     return render(request, 'success.html')
+
+@login_required
+def event_my_bookings(request):
+    try:
+        # Assuming the user is associated with one auditorium
+        auditorium = Auditorium.objects.get(user=request.user)
+        bookings = BookingHistory.objects.filter(auditorium=auditorium)
+    except Auditorium.DoesNotExist:
+        bookings = []
+
+    context = {
+        'bookings': bookings,
+        'auditorium': auditorium
+    }
+    return render(request, 'event_my_bookings.html', context)
+
+@login_required
+def user_my_bookings(request):
+    # Fetch bookings related to the logged-in user
+    bookings = BookingHistory.objects.filter(user=request.user)
+
+    context = {
+        'bookings': bookings
+    }
+    return render(request, 'user_my_bookings.html', context)

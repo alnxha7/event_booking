@@ -152,9 +152,7 @@
                     sendBookingRequest(dateString, false); // Set book to false for cancelling
                 }
             } else {
-                if (confirm(`Do you want to book ${dateString}?`)) {
-                    sendBookingRequest(dateString, true); // Set book to true for booking
-                }
+                window.location.href = `{% url 'payment_form' auditorium.id %}?date=${dateString}`;
             }
         }
 

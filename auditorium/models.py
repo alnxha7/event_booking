@@ -85,8 +85,11 @@ class BookingHistory(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     date_booked = models.DateField()
     date_of_booking = models.DateTimeField(auto_now_add=True)
+    features_selected = models.TextField()  # To store a comma-separated list of features
+    final_price = models.DecimalField(max_digits=10, decimal_places=2)
     card_number = models.CharField(max_length=16)
     cvv = models.CharField(max_length=4)
 
     def __str__(self):
         return f"{self.user.username} - {self.auditorium.user.username} - {self.date_booked}"
+    

@@ -47,13 +47,16 @@
                     <a href="/"><i class="fa fa-home"></i> Logout</a>
                 </li>
                 <li>
-                    <a href="{% url 'event_schedules' auditorium.id %}"><i class="fa fa-home"></i> My Schedules</a>
+                    <a href="{% url 'event_schedules' auditorium.id %}"><i class="fa fa-calendar"></i> My Schedules</a>
                 </li>
 				<li>
 					<a href="{% url 'event_features' auditorium.id %}"><i class="fa fa-star"></i> Features</a>
 				</li>
 				<li>
 					<a href="{% url 'user_requests' %}"><i class="fa fa-key"></i> User-Requests</a>
+				</li>
+				<li>
+					<a href="{% url 'event_my_bookings' %}"><i class="fa fa-book"></i> My Bookings</a>
 				</li>
             </ul>
 			<div class="social">

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <title>My Bookings</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+    <link rel='stylesheet' href='http://fonts.googleapis.com/css?family=PT+Sans'>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Droid+Serif:regular,bold"/>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Alegreya+Sans:regular,italic,bold,bolditalic"/>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Nixie+One:regular,italic,bold,bolditalic"/>
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Alegreya+SC:regular,italic,bold,bolditalic"/>
+    <link rel="stylesheet" href="../static/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../static/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../static/css/style.css" media="screen"/>
+</head>
+
+<body>
+    <div class="container">
+        <h2>My Bookings</h2>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Auditorium</th>
+                    <th>Date of Booking</th>
+                    <th>Date Booked</th>
+                    <th>Features Selected</th>
+                    <th>Card Number</th>
+                    <th>Final Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for booking in bookings %}
+                    <tr>
+                        <td>{{ booking.auditorium.user.username }}</td>
+                        <td>{{ booking.date_of_booking }}</td>
+                        <td>{{ booking.date_booked }}</td>
+                        <td>{{ booking.features_selected }}</td>
+                        <td>{{ booking.card_number }}</td>
+                        <td>{{ booking.final_price }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6">No bookings found.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script src="../static/js/jquery-2.1.3.min.js"></script>
+    <script src="../static/js/jquery-migrate-1.2.1.min.js"></script>
+    <script src="../static/js/bootstrap.min.js"></script>
+    <script src="../static/js/jquery.actual.min.js"></script>
+    <script src="../static/js/jquery.scrollTo.min.js"></script>
+    <script src="../static/js/script.js"></script>
+</body>
+</html>

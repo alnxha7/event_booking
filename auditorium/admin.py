@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from .models import User, Auditorium
+from .models import User, Auditorium, BookingHistory
 
 class UserAdmin(BaseUserAdmin):
     fieldsets = (
@@ -43,5 +43,13 @@ class AuditoriumAdmin(admin.ModelAdmin):
 
     reject_auditoriums.short_description = 'Reject selected auditoriums'
 
+class BookingHistoryAdmin(admin.ModelAdmin):
+    list_display = ('get_auditorium_name', 'user', 'date_booked', 'card_number')
+    search_fields = ('auditorium__name', 'user__email', 'card_number')
+
+    def get_auditorium_name(self, obj):
+        return obj.auditorium.user.username
+
 admin.site.register(User, UserAdmin)
 admin.site.register(Auditorium, AuditoriumAdmin)
+admin.site.register(BookingHistory, BookingHistoryAdmin)
