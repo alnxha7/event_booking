@@ -27,6 +27,7 @@
                     <th>Features Selected</th>
                     <th>Card Number</th>
                     <th>Final Price</th>
+                    <th>Auditorium Amount</th>
                 </tr>
             </thead>
             <tbody>
@@ -38,6 +39,7 @@
                         <td>{{ booking.features_selected }}</td>
                         <td>{{ booking.card_number }}</td>
                         <td>{{ booking.final_price }}</td>
+                        <td>{{ booking.auditorium_amount}}</td>
                     </tr>
                 {% empty %}
                     <tr>

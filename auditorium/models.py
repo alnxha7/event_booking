@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin, Group, Permission
 from django.conf import settings
 from django.utils import timezone
+from decimal import Decimal
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, username, password=None, **extra_fields):
@@ -82,13 +83,23 @@ class UserRequest(models.Model):
 
 class BookingHistory(models.Model):
     auditorium = models.ForeignKey(Auditorium, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     date_booked = models.DateField()
     date_of_booking = models.DateTimeField(auto_now_add=True)
     features_selected = models.TextField()  # To store a comma-separated list of features
     final_price = models.DecimalField(max_digits=10, decimal_places=2)
     card_number = models.CharField(max_length=16)
     cvv = models.CharField(max_length=4)
+    admin_amount = models.DecimalField(max_digits=10, decimal_places=2, editable=False)
+
+    def save(self, *args, **kwargs):
+        if self.final_price is not None:
+            self.admin_amount = self.final_price * Decimal('0.15')
+        super().save(*args, **kwargs)
+
+    @property
+    def auditorium_amount(self):
+        return self.final_price * Decimal('0.85')
 
     def __str__(self):
         return f"{self.user.username} - {self.auditorium.user.username} - {self.date_booked}"
