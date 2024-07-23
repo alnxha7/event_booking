@@ -4,21 +4,161 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Auditorium Details</title>
-    <!-- Include your CSS stylesheets here -->
+    <style>
+        /* Basic Styling */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            background-color: #333;
+            color: #fff;
+            padding: 15px;
+            margin: 0;
+        }
+        .auditorium-details {
+            width: 80%;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 1s ease-in;
+        }
+        .slideshow-container {
+            position: relative;
+            max-width: 100%;
+            margin: auto;
+            overflow: hidden;
+        }
+        .slides {
+            display: flex;
+            transition: transform 0.5s ease;
+        }
+        .slides img {
+            width: 100%;
+            border-radius: 5px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .prev, .next {
+            cursor: pointer;
+            position: absolute;
+            top: 50%;
+            width: auto;
+            padding: 16px;
+            margin-top: -22px;
+            color: #fff;
+            font-weight: bold;
+            font-size: 18px;
+            border-radius: 3px;
+            user-select: none;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .next {
+            right: 0;
+        }
+        .prev:hover, .next:hover {
+            background-color: rgba(0,0,0,0.8);
+        }
+        .prev {
+            left: 0;
+        }
+        p {
+            font-size: 16px;
+            line-height: 1.6;
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-left: 4px solid #333;
+            border-radius: 5px;
+        }
+        form {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        button {
+            display: inline-block;
+            background: #333;
+            color: #fff;
+            padding: 10px 20px;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s ease, transform 0.3s ease;
+        }
+        button:hover {
+            background: #555;
+            transform: scale(1.05);
+        }
+    
+        /* Features List */
+        .features-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .features-list li {
+            background-color: #f1f1f1;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin: 5px 0;
+            padding: 10px;
+        }
+    
+        /* Keyframe Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
 </head>
 <body>
+    {% include 'user_navbar.html' %}
     <h1>{{ auditorium.user.username }}</h1>
 
     <div class="auditorium-details">
-        {% if auditorium.images %}
-            <img src="{{ auditorium.images.url }}" alt="Image of {{ auditorium.user.username }}">
-        {% else %}
-            <img src="../static/images/blue_mac2.jpg" alt="Default Image">
-        {% endif %}
+        <div class="slideshow-container">
+            <div class="slides">
+                {% if auditorium.auditorium_images.all %}
+                    {% for image in auditorium.auditorium_images.all %}
+                        <img src="{{ image.image.url }}" alt="Image of {{ auditorium.user.username }}">
+                    {% endfor %}
+                {% elif auditorium.images %}
+                    <img src="{{ auditorium.images.url }}" alt="Image of {{ auditorium.user.username }}">
+                {% else %}
+                    <img src="../static/images/blue_mac2.jpg" alt="Default Image">
+                {% endif %}
+            </div>
+            <a class="prev" onclick="moveSlide(-1)">&#10094;</a>
+            <a class="next" onclick="moveSlide(1)">&#10095;</a>
+        </div>
         <p>Location: {{ auditorium.location }}</p>
         <p>Capacity: {{ auditorium.capacity }}</p>
         <p>Price: {{ auditorium.price }}</p>
         <!-- Add more details as needed -->
+
+        <h4>Features</h4>
+        <ul class="features-list">
+            {% if auditorium.auditorium_features.all %}
+                {% for feature in auditorium.auditorium_features.all %}
+                    <li>{{ feature.name }}</li>
+                {% endfor %}
+            {% else %}
+                <li>No features available</li>
+            {% endif %}
+        </ul>
 
         <h2>Select Date for Booking</h2>
         <div id="calendar-{{ auditorium.id }}"></div>
@@ -31,6 +171,31 @@
     </div>
 
     <!-- Include your JavaScript files here -->
-    <script src="../static/js/app.js"></script>
+    <script>
+        let slideIndex = 0;
+        const slideInterval = 3000; // Interval time in milliseconds (3 seconds)
+
+        function showSlides() {
+            const slides = document.querySelector('.slides');
+            const slideWidth = slides.children[0].offsetWidth;
+            slides.style.transform = `translateX(${-slideIndex * slideWidth}px)`;
+        }
+
+        function moveSlide(n) {
+            const slides = document.querySelectorAll('.slides img');
+            slideIndex = (slideIndex + n + slides.length) % slides.length;
+            showSlides();
+        }
+
+        function startSlideShow() {
+            showSlides();
+            setInterval(() => moveSlide(1), slideInterval);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            startSlideShow();
+        });
+    </script>
+    <script src="../static/js/script.js"></script>
 </body>
 </html>

@@ -244,6 +244,7 @@ def user_bookings(request):
 
 def auditorium_list(request, auditorium_id):
     auditorium = Auditorium.objects.get(id=auditorium_id)
+    features = auditorium.auditorium_features.all()
     return render(request, 'auditorium_list.html', {'auditorium': auditorium})
 
 def book_calendar(request, auditorium_id):

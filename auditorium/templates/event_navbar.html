@@ -5,6 +5,9 @@
             <a href="/"><i class="fa fa-home"></i> Logout</a>
         </li>
         <li>
+            <a href="{% url 'event_host_index' %}"> Home</a>
+        </li>
+        <li>
             <a href="{% url 'event_schedules' auditorium.id %}"><i class="fa fa-calendar"></i> My Schedules</a>
         </li>
         <li>
