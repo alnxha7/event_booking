@@ -66,7 +66,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>User Requests</h1>
+        <h1>User Requests for {{auditorium.user.username}}</h1>
         <table>
             <thead>
                 <tr>
@@ -110,7 +110,6 @@
                 {% endfor %}
             </tbody>
         </table>
-        <a href="{% url 'event_host_index' %}">Back</a>
     </div>
 </body>
 </html>

@@ -181,7 +181,6 @@ def event_schedules(request, auditorium_id):
     booked_dates_json = json.dumps(booked_dates)
     return render(request, 'event_schedules.html', {'auditorium': auditorium, 'booked_dates_json': booked_dates_json})
 
-@require_POST
 @login_required
 def manage_booking(request, auditorium_id):
     auditorium = get_object_or_404(Auditorium, id=auditorium_id)
@@ -190,28 +189,23 @@ def manage_booking(request, auditorium_id):
     book = data.get('book', False)
 
     if not booking_date or not isinstance(booking_date, str):
-        logger.error('Invalid date format or missing date')
         return JsonResponse({'status': 'error', 'message': 'Invalid date format'}, status=400)
 
     try:
         booking_date = date.fromisoformat(booking_date)
     except ValueError:
-        logger.error('Invalid date format')
         return JsonResponse({'status': 'error', 'message': 'Invalid date format'}, status=400)
 
     if booking_date < date.today():
-        logger.error('Cannot book past dates')
         return JsonResponse({'status': 'error', 'message': 'Cannot book past dates'}, status=400)
 
     booking, created = Booking.objects.get_or_create(auditorium=auditorium, user=request.user, date=booking_date)
 
     if not book:
         booking.delete()
-        logger.info(f'Booking for {booking_date} has been cancelled')
         return JsonResponse({'status': 'cancelled', 'message': f'Booking for {booking_date} has been cancelled'})
     else:
-        logger.warning(f'Unauthorized booking attempt for {booking_date}')
-        return JsonResponse({'status': 'error', 'message': 'Unauthorized booking attempt'}, status=403)
+        return JsonResponse({'status': 'booked', 'message': f'Booking for {booking_date} has been confirmed'})
     
 @login_required
 def user_index(request):
