@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Manage Features</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        /* Add your existing CSS here */
+        /* General Styles */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -80,9 +81,66 @@
         .back-btn:hover {
             background-color: #ddd;
         }
+        /* Navbar Styles */
+        nav {
+            background-color: #333;
+            padding: 10px 0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        nav ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            text-align: right;
+        }
+
+        nav ul li {
+            display: inline;
+            float: right;
+            margin-right: 20px;
+        }
+
+        nav ul li a {
+            display: block;
+            color: #555;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        nav ul li a:hover {
+            background-color: #555;
+            transform: scale(1.1);
+            color: rgb(33, 100, 176);
+        }
+
+        nav ul li a:active {
+            background-color: #444;
+            transform: scale(0.95);
+        }
     </style>
 </head>
 <body>
+    <nav>
+        <ul>
+            <li>
+                <a href="/"> Logout</a>
+            </li>
+            <li>
+                <a href="{% url 'event_host_index' %}"> Home</a>
+            </li>
+            <li>
+                <a href="{% url 'user_requests' %}"> User-Requests</a>
+            </li>
+            <li>
+                <a href="{% url 'event_my_bookings' %}"> My Bookings</a>
+            </li>
+        </ul>
+    </nav>
     <div class="container">
         <h1>Manage Features for {{ auditorium.user.username }}</h1>
         

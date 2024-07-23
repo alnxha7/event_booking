@@ -1,0 +1,63 @@
+<!-- user_navbar.html -->
+<nav>
+    <ul>
+        <li>
+            <a href="/"><i class="fa fa-home"></i> Logout</a>
+        </li>
+        <li>
+            <a href="{% url 'event_schedules' auditorium.id %}"><i class="fa fa-calendar"></i> My Schedules</a>
+        </li>
+        <li>
+            <a href="{% url 'event_features' auditorium.id %}"><i class="fa fa-star"></i> Features</a>
+        </li>
+        <li>
+            <a href="{% url 'user_requests' %}"><i class="fa fa-key"></i> User-Requests</a>
+        </li>
+        <li>
+            <a href="{% url 'event_my_bookings' %}"><i class="fa fa-book"></i> My Bookings</a>
+        </li>
+    </ul>
+</nav>
+
+<style>
+    nav {
+            background-color: #333;
+            padding: 10px 0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        nav ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            text-align: right;
+        }
+
+        nav ul li {
+            display: inline;
+            float: right;
+            margin-right: 20px;
+        }
+
+        nav ul li a {
+            display: block;
+            color: #fff;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        nav ul li a:hover {
+            background-color: #555;
+            transform: scale(1.1);
+            color: rgb(33, 100, 176);
+        }
+
+        nav ul li a:active {
+            background-color: #444;
+            transform: scale(0.95);
+        }
+</style>
