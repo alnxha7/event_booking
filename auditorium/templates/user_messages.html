@@ -61,8 +61,8 @@
         }
         .back-btn {
             display: inline-block;
-            background: #828282;
-            color: #333;
+            background: #333;
+            color: #ffffff;
             padding: 10px 20px;
             text-decoration: none;
             border: 1px solid #333;
@@ -72,12 +72,14 @@
         }
         .back-btn:hover {
             background: #ddd;
+            color: #333;
         }
     </style>
 </head>
 <body>
+    {% include 'user_navbar.html' %}
     <div class="container">
-        <h1>Messages</h1>
+        <h1>Messages for {{user.username}}</h1>
         {% if payment_requests %}
         <table>
             <thead>
