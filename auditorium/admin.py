@@ -44,7 +44,7 @@ class AuditoriumAdmin(admin.ModelAdmin):
     reject_auditoriums.short_description = 'Reject selected auditoriums'
 
 class BookingHistoryAdmin(admin.ModelAdmin):
-    list_display = ('get_auditorium_name', 'user', 'date_booked', 'card_number', 'final_price', 'admin_amount')
+    list_display = ('get_auditorium_name', 'user', 'date_booked', 'card_number', 'final_price', 'auditorium_amount', 'admin_amount')
     search_fields = ('auditorium__user__username', 'user__email', 'card_number')
 
     def get_auditorium_name(self, obj):

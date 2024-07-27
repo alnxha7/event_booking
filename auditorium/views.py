@@ -458,3 +458,8 @@ def user_my_bookings(request):
         'bookings': bookings
     }
     return render(request, 'user_my_bookings.html', context)
+
+@login_required
+def view_requests(request):
+    user_requests = UserRequest.objects.filter(user=request.user)
+    return render(request, 'view_requests.html', {'user_requests': user_requests})

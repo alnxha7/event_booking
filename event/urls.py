@@ -38,6 +38,7 @@ urlpatterns = [
     path('book_calendar/<int:auditorium_id>/', views.book_calendar, name='book_calendar'),
     path('auditorium/<int:auditorium_id>/details/', views.auditorium_details, name='auditorium_details'),
     path('user_requests/', views.user_requests, name='user_requests'),
+    path('view_requests/', views.view_requests, name='view_requests'),
     
     path('messages/', views.user_messages, name='user_messages'),
     path('approve_request/<int:request_id>/', views.approve_request, name='approve_request'),
