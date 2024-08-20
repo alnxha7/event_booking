@@ -30,7 +30,12 @@ The accounts clerk should be able to enter the various types of expenditures inc
 payment to artists. The computer should prepare a balance sheet for every show and a comprehensive
 up-to-date balance sheet for every year. The different types of balance sheets should be accessible to the
 manager only.
- 
+
+ ## Getting Started
+
+```bash
+git clone https://github.com/alnxha7/event_booking.git
+```
  
 # Technologies Used
 
